@@ -48,7 +48,7 @@ THREE.OrbitControls = function ( object, domElement ) {
   var scope = this;
  
   var EPS = 0.000001;
-  var PIXELS_PER_ROUND = 1800;
+  var PIXELS_PER_ROUND = 1000;
  
   var rotateStart = new THREE.Vector2();
   var rotateEnd = new THREE.Vector2();
@@ -367,6 +367,10 @@ THREE.OrbitControls = function ( object, domElement ) {
       case scope.keys.RIGHT:
         scope.pan( new THREE.Vector3( 1, 0, 0 ) );
         break;
+
+      case 27: // escape
+        this.center.set(0, 0, 0);
+      break;
     }
  
   }

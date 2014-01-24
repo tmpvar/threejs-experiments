@@ -7,14 +7,23 @@ var updateSteps = [];
 container = document.createElement( 'div' );
 document.body.appendChild( container );
 
+scene = new THREE.Scene();
+
 camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
 camera.position.set( 0, 100, 100 );
+scene.add(camera);
 
-scene = new THREE.Scene();
+
+
 projector = new THREE.Projector();
 renderer = new THREE.WebGLRenderer({
   antialias : true
 });
+
+var light = new THREE.HemisphereLight( 0xffffff, 0, .6 );
+// light.position.set( 1, 1, 100 ).normalize();
+// light.lookAt(scene.position);
+camera.add( light );
 
 container.appendChild( renderer.domElement );
 
