@@ -20,7 +20,7 @@ renderer = new THREE.WebGLRenderer({
   antialias : true
 });
 
-var light = new THREE.HemisphereLight( 0xffffff, 0, .6 );
+var light = new THREE.HemisphereLight( 0xffffff, 0, .7);
 // light.position.set( 1, 1, 100 ).normalize();
 // light.lookAt(scene.position);
 camera.add( light );
@@ -33,6 +33,32 @@ window.addEventListener( 'resize', function() {
 
 
 renderer.setClearColor(0x222233);
+
+// renderer
+var renderer2 = new THREE.CanvasRenderer();
+renderer2.setSize( 100, 100 );
+document.body.appendChild( renderer2.domElement );
+
+
+renderer2.domElement.setAttribute('class', "axes");
+// scene
+scene2 = new THREE.Scene();
+
+
+camera2 = new THREE.PerspectiveCamera( 50, 1, 1, 1000 );
+camera2.up = camera.up; // important!
+
+
+camera2.position.set( 50, 100 , 500 );
+
+scene2.add( camera2 );
+
+var axes = new THREE.AxisHelper(10);
+var axes2 = new THREE.AxisHelper(10);
+scene.add(axes)
+scene2.add(axes2);
+
+
 
 var last = 0;
 var tick = function(t) {
