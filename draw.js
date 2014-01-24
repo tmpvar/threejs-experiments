@@ -3,7 +3,7 @@ function DrawMode(scene, camera) {
   this.camera = camera;
 
   this.plane = new THREE.Mesh(new THREE.PlaneGeometry(20, 20), new THREE.MeshNormalMaterial());
-  this.plane.quaternion = this.camera.quaternion;
+  this.plane.quaternion = this.camera.quaternion.clone();
   this.plane.overdraw = true;
   this.particles = new  THREE.Object3D();
 }
@@ -15,6 +15,7 @@ DrawMode.prototype.activate = function(lastMode) {
   this.scene.add(this.particles);
   this.scene.add(this.plane);
   this.points = [];
+  
 };
 
 DrawMode.prototype.deactivate = function() {
@@ -35,8 +36,17 @@ DrawMode.prototype.keydown = function(event) {
         };
 
         var amount = 10;
+        
+        var geometry = new THREE.ExtrudeGeometry(new THREE.Shape(this.points), {
+            amount: amount,
+            bevelEnabled: false
+          }
+        );
+
+        THREE.GeometryUtils.center(geometry);
+
         var obj = new THREE.Mesh(
-          new THREE.ExtrudeGeometry(new THREE.Shape(this.points), { amount: amount, bevelEnabled: false }),
+          geometry,
           new THREE.MeshLambertMaterial({
             color: 0xcccccc
           })
