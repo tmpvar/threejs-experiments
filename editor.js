@@ -30,6 +30,7 @@ var controls = new THREE.OrbitControls(camera, document.body );
 modeManager._defaultMode = 'navigation';
 modeManager.add('navigation', controls);
 modeManager.add('draw', new DrawMode(scene, camera));
+modeManager.add('drawplane', new DrawPlaneMode(modeManager, scene, camera, projector));
 
 modeManager.mode('navigation');
 
@@ -49,8 +50,6 @@ var cube2 = new THREE.Mesh( new THREE.CubeGeometry( 20, 20, 20 ), new THREE.Mesh
 cube2.position.x = 100;
 scene.add( cube2 );
 
-var objects = [cube, cube2];
-
 window.addEventListener('keydown', function(event) {
   console.log(event.keyCode);
 
@@ -60,7 +59,7 @@ window.addEventListener('keydown', function(event) {
     break;
 
     case 68: // d
-      modeManager.mode('draw');
+      modeManager.mode('drawplane');
     break;
   }
 });

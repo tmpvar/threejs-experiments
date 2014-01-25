@@ -9,7 +9,7 @@ function ModeManager() {
   this._defaultMode = null;
 }
 
-ModeManager.prototype.mode = function(mode) {
+ModeManager.prototype.mode = function(mode, options) {
   if (mode) {
     if (this._mode && typeof this._modes[this._mode].deactivate === 'function') {
       this._modes[this._mode].deactivate(mode);
@@ -19,8 +19,10 @@ ModeManager.prototype.mode = function(mode) {
     this._mode = mode;
 
     if (typeof this._modes[mode].activate === 'function') {
-      this._modes[mode].activate(old);
+      this._modes[mode].activate(old, options);
     }
+
+    console.log(old, '->', mode);
   }
 
   return this._mode;

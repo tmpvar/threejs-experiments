@@ -13,8 +13,6 @@ camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight
 camera.position.set( 0, 100, 100 );
 scene.add(camera);
 
-
-
 projector = new THREE.Projector();
 renderer = new THREE.WebGLRenderer({
   antialias : true

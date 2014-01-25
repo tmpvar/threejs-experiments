@@ -3,21 +3,33 @@ function DrawMode(scene, camera) {
   this.camera = camera;
 
   this.plane = new THREE.Mesh(
-    new THREE.PlaneGeometry(100, 100),
+    new THREE.PlaneGeometry(200, 200),
     new THREE.MeshBasicMaterial({ color: 0x00ee00, transparent: true, opacity: .1 })
   );
   this.plane.quaternion = this.camera.quaternion.clone();
-  //this.plane.overdraw = true;
+  this.plane.overdraw = true;
   this.particles = new  THREE.Object3D();
 }
 
-DrawMode.prototype.activate = function(lastMode) {
+DrawMode.prototype.activate = function(lastMode, options) {
   console.log('activated draw mode', lastMode)
   this.lastMode = lastMode;
 
-  // TODO: add support for face selection
-  //       otherwise it's probably better to snap to an axis plane
-  this.plane.quaternion = this.camera.quaternion.clone();
+  // Keep the default mode from catching mouseup which causes
+  // issues.
+  this.handledMouseDown = true;
+
+  if (options.intersection) {
+    var isect = options.intersection;
+
+    var coplanar = isect.object.geometry.vertices[isect.face.a].clone().add(isect.object.position)
+ 
+    isect.object.quaternion.multiplyVector3(coplanar);
+    this.plane.position.copy(coplanar);
+    this.plane.lookAt(coplanar.clone().add(isect.face.normal));
+  } else {
+    this.plane.quaternion = this.camera.quaternion.clone();
+  }
 
   this.scene.add(this.particles);
   this.scene.add(this.plane);
@@ -49,15 +61,9 @@ DrawMode.prototype.keydown = function(event) {
         var shapeGeometry = new THREE.Geometry();
         shapeGeometry.vertices = this.points;
 
-        // Collect the offset from the center of the scene
-        // We'll use this when we re-position the extruded
-        // geometry back into the proper location.
-        var offset = THREE.GeometryUtils.center(shapeGeometry);
-        
         // apply inverse transform so the shape will be 
         // properly oriented
         shapeGeometry.applyMatrix(new THREE.Matrix4().getInverse(this.plane.matrixWorld));
-
 
         // Extrude the geometry without bevel, by the specified amount
         var geometry = new THREE.ExtrudeGeometry(new THREE.Shape(shapeGeometry.vertices), {
@@ -75,20 +81,25 @@ DrawMode.prototype.keydown = function(event) {
           })
         );
 
-        // Move the geometry back to it's drawn location
-        obj.position.set(-offset.x, -offset.y, -offset.z);
+        // Rotate the geometry into the drawn orientation
+        obj.geometry.applyMatrix(new THREE.Matrix4().extractRotation(this.plane.matrixWorld));
+        
+        // Apply the position based on where we drew
+        obj.applyMatrix(new THREE.Matrix4().copyPosition(this.plane.matrixWorld));
 
-        // Apply rotation to match the draw plane
-        obj.quaternion = this.plane.quaternion.clone();
+        obj.geometry.computeCentroids();
+        obj.geometry.computeFaceNormals();
+        obj.geometry.computeVertexNormals();
 
         this.scene.add(obj);
         this.points = [];
-
+        return true;
       } else {
-        event.modeManager.mode(this.lastMode);
+        event.modeManager.mode('navigation');
         while (this.points.length) {
           this.particles.remove(this.points.pop().particle);
         }
+        return true;
       }
     break;
   }
