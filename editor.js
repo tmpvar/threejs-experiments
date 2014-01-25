@@ -27,7 +27,7 @@ updateSteps.push(function() {
 });
 
 var controls = new THREE.OrbitControls(camera, document.body );
-
+modeManager._defaultMode = 'navigation';
 modeManager.add('navigation', controls);
 modeManager.add('draw', new DrawMode(scene, camera));
 

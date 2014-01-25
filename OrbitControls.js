@@ -233,7 +233,6 @@ THREE.OrbitControls = function ( object, domElement ) {
   }
  
   this.mousedown = function onMouseDown( event ) {
-    
     momentumOn = false;
  
     momentumLeft = momentumUp = 0;
@@ -279,7 +278,7 @@ THREE.OrbitControls = function ( object, domElement ) {
   var momentumLeft, momentumUp;
  
   this.mousemove = function onMouseMove( event ) {
- 
+
     if ( scope.enabled === false ) return;
  
     event.preventDefault();

@@ -2,7 +2,10 @@ function DrawMode(scene, camera) {
   this.scene = scene;
   this.camera = camera;
 
-  this.plane = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshNormalMaterial());
+  this.plane = new THREE.Mesh(
+    new THREE.PlaneGeometry(100, 100),
+    new THREE.MeshBasicMaterial({ color: 0x00ee00, transparent: true, opacity: .1 })
+  );
   this.plane.quaternion = this.camera.quaternion.clone();
   //this.plane.overdraw = true;
   this.particles = new  THREE.Object3D();
@@ -25,7 +28,7 @@ DrawMode.prototype.activate = function(lastMode) {
 DrawMode.prototype.deactivate = function() {
   console.log('deactivated draw mode')
   this.scene.remove(this.plane);
-  //this.scene.remove(this.particles);
+  this.scene.remove(this.particles);
 };
 
 DrawMode.prototype.keydown = function(event) {
@@ -53,7 +56,7 @@ DrawMode.prototype.keydown = function(event) {
         
         // apply inverse transform so the shape will be 
         // properly oriented
-        shapeGeometry.applyMatrix(camera.matrixWorldInverse);
+        shapeGeometry.applyMatrix(new THREE.Matrix4().getInverse(this.plane.matrixWorld));
 
 
         // Extrude the geometry without bevel, by the specified amount
@@ -103,23 +106,33 @@ DrawMode.prototype.mousedown = function(event) {
   var intersects = raycaster.intersectObject(this.plane);
 
   if ( intersects.length > 0 ) {
-
+    this.handledMouseDown = true;
     var particle = new THREE.Sprite();
-    particle.position = intersects[ 0 ].point;
+    particle.position = intersects[0].point;
 
-    var p = intersects[ 0 ].point.clone();
+    var p = intersects[0].point.clone();
     p.particle = particle;
     this.points.push(p);
 
     particle.scale.x = particle.scale.y = 1;
-    this.particles.add( particle );
+    this.particles.add(particle);
+
+    // Let the mode manager know that we handled the mousedown
+    return true;
+  }
+};
+
+DrawMode.prototype.mouseup = function(event) {
+  if (this.handledMouseDown) {
+    this.handledMouseDown = false;
+    return true;
   }
 }
 
 
 DrawMode.prototype.handle = function(type, event) {
   if (typeof this[type] === 'function') {
-    this[type](event);
+    return this[type](event);
   }
 };
 
