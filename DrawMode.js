@@ -3,7 +3,7 @@ function DrawMode(scene, camera) {
   this.camera = camera;
 
   this.plane = new THREE.Mesh(
-    new THREE.PlaneGeometry(200, 200),
+    new THREE.PlaneGeometry(100, 100),
     new THREE.MeshBasicMaterial({ color: 0x00ee00, transparent: true, opacity: .1 })
   );
   this.plane.quaternion = this.camera.quaternion.clone();
@@ -12,7 +12,6 @@ function DrawMode(scene, camera) {
 }
 
 DrawMode.prototype.activate = function(lastMode, options) {
-  console.log('activated draw mode', lastMode)
   this.lastMode = lastMode;
 
   // Keep the default mode from catching mouseup which causes
@@ -24,6 +23,11 @@ DrawMode.prototype.activate = function(lastMode, options) {
 
     var coplanar = isect.object.geometry.vertices[isect.face.a].clone().add(isect.object.position)
  
+    // TODO: need a method that will more appropriately locate the plane
+    //  an idea is:
+    //  - find coplanar points with the a,b,c of the isect
+    //  - compute center and place the plane there
+
     isect.object.quaternion.multiplyVector3(coplanar);
     this.plane.position.copy(coplanar);
     this.plane.lookAt(coplanar.clone().add(isect.face.normal));
@@ -38,7 +42,6 @@ DrawMode.prototype.activate = function(lastMode, options) {
 };
 
 DrawMode.prototype.deactivate = function() {
-  console.log('deactivated draw mode')
   this.scene.remove(this.plane);
   this.scene.remove(this.particles);
 };
@@ -50,12 +53,14 @@ DrawMode.prototype.keydown = function(event) {
       if (this.points.length > 2) {            
 
         // TODO: collect this from a modal
-        var amount = 10;
+        var amount = 100;
         
         var extrudePath = new THREE.Path();
 
         var shapeGeometry = new THREE.Geometry();
         shapeGeometry.vertices = this.points;
+
+        var originalCenter = THREE.GeometryUtils.center(shapeGeometry.clone());
 
         // apply inverse transform so the shape will be 
         // properly oriented
@@ -64,12 +69,10 @@ DrawMode.prototype.keydown = function(event) {
         // Extrude the geometry without bevel, by the specified amount
         var geometry = new THREE.ExtrudeGeometry(new THREE.Shape(shapeGeometry.vertices), {
           amount: amount,
-          bevelEnabled: false,
-          extrudeMaterial: 1
+          bevelEnabled: false
         });
 
-        // TODO: the new geometry's origin is not at center.
-        // var offset = THREE.GeometryUtils.center(geometry);
+        THREE.GeometryUtils.center(geometry);
 
         geometry.computeCentroids();
         geometry.computeFaceNormals()
@@ -78,7 +81,7 @@ DrawMode.prototype.keydown = function(event) {
         var obj = new THREE.Mesh(
           geometry,
           new THREE.MeshLambertMaterial({
-            color: 0xcccccc,
+            color: 0xFFFFFF,
             shading: THREE.FlatShading
           })
         );
@@ -86,12 +89,20 @@ DrawMode.prototype.keydown = function(event) {
         obj.geometry.castShadow = true;
         obj.geometry.receiveShadow = true;
 
-        // Rotate the geometry into the drawn orientation
-        obj.geometry.applyMatrix(new THREE.Matrix4().extractRotation(this.plane.matrixWorld));
-        // Apply the position based on where we drew
-
-        obj.applyMatrix(new THREE.Matrix4().copyPosition(this.plane.matrixWorld));
-
+        var rot = new THREE.Matrix4().extractRotation(this.plane.matrixWorld)
+        
+        // This will move the object's position so that the edge of the
+        // extruded mesh touches the drawing plane
+        var centering = new THREE.Vector3(0, 0, amount/2);
+        centering.applyMatrix4(rot);
+        obj.position.add(centering);
+        
+        // rotate the object housing the extruded mesh
+        // to match the drawing plane's normal
+        obj.geometry.applyMatrix(rot);
+        
+        // move the object back to where we drew it on the plane
+        obj.position.sub(originalCenter);
 
         obj.geometry.computeCentroids();
         obj.geometry.computeFaceNormals();
@@ -100,6 +111,7 @@ DrawMode.prototype.keydown = function(event) {
         this.scene.add(obj);
         this.points = [];
         return true;
+
       } else {
         event.modeManager.mode('navigation');
         while (this.points.length) {
