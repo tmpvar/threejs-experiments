@@ -39,14 +39,22 @@ updateSteps.push(modeManager);
 var plane;
 
 var cube = new THREE.Mesh( new THREE.CubeGeometry( 20, 20, 20 ), new THREE.MeshLambertMaterial({
-  color: 0xcccccc
+  color: 0xcccccc,
+  shading: THREE.FlatShading
 }));
+
+cube.geometry.castShadow = true;
+cube.geometry.receiveShadow = true;
 cube.position.y = 100;
 scene.add( cube );
 
 var cube2 = new THREE.Mesh( new THREE.CubeGeometry( 20, 20, 20 ), new THREE.MeshLambertMaterial({
-  color: 0xcccccc
+  color: 0xcccccc,
+  shading: THREE.FlatShading
 }));
+
+cube2.geometry.castShadow = true;
+cube2.geometry.receiveShadow = true;
 cube2.position.x = 100;
 scene.add( cube2 );
 

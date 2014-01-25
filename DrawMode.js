@@ -48,12 +48,8 @@ DrawMode.prototype.keydown = function(event) {
   switch (event.keyCode) {
     case 27:
       if (this.points.length > 2) {            
-        var extrusionSettings = {
-          size: 30, height: 4, curveSegments: 3,
-          bevelThickness: 1, bevelSize: 2, bevelEnabled: false,
-          material: 0, extrudeMaterial: 1
-        };
 
+        // TODO: collect this from a modal
         var amount = 10;
         
         var extrudePath = new THREE.Path();
@@ -69,23 +65,33 @@ DrawMode.prototype.keydown = function(event) {
         var geometry = new THREE.ExtrudeGeometry(new THREE.Shape(shapeGeometry.vertices), {
           amount: amount,
           bevelEnabled: false,
+          extrudeMaterial: 1
         });
+
+        // TODO: the new geometry's origin is not at center.
+        // var offset = THREE.GeometryUtils.center(geometry);
 
         geometry.computeCentroids();
         geometry.computeFaceNormals()
+        geometry.computeVertexNormals()
 
         var obj = new THREE.Mesh(
           geometry,
           new THREE.MeshLambertMaterial({
-            color: 0xcccccc
+            color: 0xcccccc,
+            shading: THREE.FlatShading
           })
         );
 
+        obj.geometry.castShadow = true;
+        obj.geometry.receiveShadow = true;
+
         // Rotate the geometry into the drawn orientation
         obj.geometry.applyMatrix(new THREE.Matrix4().extractRotation(this.plane.matrixWorld));
-        
         // Apply the position based on where we drew
+
         obj.applyMatrix(new THREE.Matrix4().copyPosition(this.plane.matrixWorld));
+
 
         obj.geometry.computeCentroids();
         obj.geometry.computeFaceNormals();

@@ -18,10 +18,10 @@ renderer = new THREE.WebGLRenderer({
   antialias : true
 });
 
-var light = new THREE.HemisphereLight( 0xffffff, 0, .7);
-// light.position.set( 1, 1, 100 ).normalize();
-// light.lookAt(scene.position);
-camera.add( light );
+var light = new THREE.HemisphereLight( 0xffffff, 0x222233, .6);
+light.position=camera.position;
+scene.add( light );
+
 
 container.appendChild( renderer.domElement );
 
