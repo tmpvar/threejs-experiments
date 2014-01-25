@@ -68,14 +68,16 @@ window.addEventListener('keydown', function(event) {
 var selectedObject = null;
 
 function selectObject(object) {
-  if (selectedObject) {
+  if (selectedObject && selectedObject.material.emissive) {
     selectedObject.material.emissive.setHex(selectedObject.oldHex);
   }
 
   if (object) {
     selectedObject = object;
-    selectedObject.oldHex = selectedObject.material.emissive.getHex();
-    selectedObject.material.emissive.setHex(selectedObject.oldHex+0x003300);
+    if (selectedObject && selectedObject.material.emissive) {
+      selectedObject.oldHex = selectedObject.material.emissive.getHex();
+      selectedObject.material.emissive.setHex(selectedObject.oldHex+0x003300);
+    }
   }
 }
 
