@@ -31,10 +31,6 @@ document.addEventListener('mousemove', function(event) {
 
   var isect = tools.mouseIntersections(sceneRoot, camera, new THREE.Vector2(event.clientX, event.clientY));
 
-  // test.children.forEach(function(child) {
-  //   test.remove(child);
-  // });
-
   if (helper) {
     helper.visible = false;
   }
@@ -42,7 +38,7 @@ document.addEventListener('mousemove', function(event) {
   if (isect && isect.face) {
     if (isect.face.ngonHelper) {
       helper = isect.face.ngonHelper;
-      isect.face.ngonHelper.visible = true;
+      helper.visible = true;
     
     /* TODO: find the closest line and if the user is hovering, highlight it
     } else {
