@@ -18,11 +18,15 @@ tools.mouseIntersections = function(root, camera, vec2) {
   return null;
 };
 
+var num = function(a) {
+  return parseFloat(Number(a).toFixed(6));
+};
+
 tools.groupFacesByNormal = function(triangles) {
   var l = triangles.length, i, faces = {};
 
   for (i=0; i<l; i++) {
-    var key = triangles[i].normal.toArray().join('-');
+    var key = triangles[i].normal.toArray().map(num).join(',');
 
     if (!faces[key]) {
       faces[key] = [];
