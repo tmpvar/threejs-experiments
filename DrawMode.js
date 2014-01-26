@@ -1,4 +1,5 @@
-function DrawMode(scene, camera) {
+function DrawMode(drawPlaneRoot, scene, camera) {
+  this.drawPlaneRoot = drawPlaneRoot
   this.scene = scene;
   this.camera = camera;
 
@@ -44,15 +45,15 @@ DrawMode.prototype.activate = function(lastMode, options) {
     this.plane.quaternion = this.camera.quaternion.clone();
   }
 
-  this.scene.add(this.particles);
-  this.scene.add(this.plane);
+  this.drawPlaneRoot.add(this.particles);
+  this.drawPlaneRoot.add(this.plane);
   this.points = [];
   
 };
 
 DrawMode.prototype.deactivate = function() {
-  this.scene.remove(this.plane);
-  this.scene.remove(this.particles);
+  this.drawPlaneRoot.remove(this.plane);
+  this.drawPlaneRoot.remove(this.particles);
 };
 
 DrawMode.prototype.keydown = function(event) {

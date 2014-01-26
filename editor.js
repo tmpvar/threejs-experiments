@@ -68,7 +68,7 @@ scene.add(sceneRoot);
 var controls = new THREE.OrbitControls(camera, document.body );
 modeManager._defaultMode = 'navigation';
 modeManager.add('navigation', controls);
-modeManager.add('draw', new DrawMode(sceneRoot, camera));
+modeManager.add('draw', new DrawMode(scene, sceneRoot, camera));
 modeManager.add('drawplane', new DrawPlaneMode(modeManager, sceneRoot, camera, projector));
 
 modeManager.mode('navigation');
