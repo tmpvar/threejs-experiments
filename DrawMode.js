@@ -22,14 +22,22 @@ DrawMode.prototype.activate = function(lastMode, options) {
   if (options.intersection) {
     var isect = options.intersection;
 
-    var coplanar = isect.object.geometry.vertices[isect.face.a].clone().add(isect.object.position)
+    var coplanar;
+
+    if (isect.faceIndex) {
+      var face = isect.object.geometry.faces[isect.faceIndex];
+      coplanar = face.ngonHelper.position.clone();
+      coplanar.setZ(10);
+    } else {
+      coplanar = isect.object.geometry.vertices[isect.face.a].clone().add(isect.object.position);
+    }
  
     // TODO: need a method that will more appropriately locate the plane
     //  an idea is:
     //  - find coplanar points with the a,b,c of the isect
     //  - compute center and place the plane there
 
-    isect.object.quaternion.multiplyVector3(coplanar);
+    coplanar.applyQuaternion(isect.object.quaternion);
     this.plane.position.copy(coplanar);
     this.plane.lookAt(coplanar.clone().add(isect.face.normal));
   } else {

@@ -15,22 +15,11 @@ DrawPlaneMode.prototype.deactivate = function() {
 };
 
 DrawPlaneMode.prototype.mousedown = function(event) {
-  var vector = new THREE.Vector3( ( event.clientX / window.innerWidth ) * 2 - 1, - ( event.clientY / window.innerHeight ) * 2 + 1, 0 );
-  projector.unprojectVector(vector, this.camera);
+  var isect = tools.mouseIntersections(sceneRoot, this.camera, new THREE.Vector2(event.clientX, event.clientY));
 
-  var raycaster = new THREE.Raycaster(
-    this.camera.position,
-    vector.sub(this.camera.position).normalize()
-  );
-
-  var intersects = raycaster.intersectObjects(this.scene.children, true);
-
-
-  if ( intersects.length > 0 ) {
-    console.log(intersects[0].face);
-    
+  if (isect) {
     this.modeManager.mode('draw', {
-      intersection : intersects[0]
+      intersection : isect
     });
 
     this.handledMousedown = true

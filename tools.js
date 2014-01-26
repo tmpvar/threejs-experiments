@@ -78,7 +78,7 @@ tools.computeCoplanarFaces = function(geometry) {
 
     var det = mat.determinant()
 
-    if (Math.abs(det) < 0.0001) {
+    if (true || Math.abs(det) < 0.0001) {
       faceGeometry.push({
         faces : group,  // TODO: there may be faces that get pruned above.
         verts : verts

@@ -36,7 +36,6 @@ document.addEventListener('mousemove', function(event) {
 
   if (isect && isect.face) {
     if (isect.face.ngonHelper) {
-      console.log('yay, helper');
       test.add(isect.face.ngonHelper);
     } else {
 
@@ -63,18 +62,19 @@ updateSteps.push(function() {
   renderer2.render(scene2, camera2)
 });
 
+var sceneRoot = new THREE.Object3D();
+scene.add(sceneRoot);
+
 var controls = new THREE.OrbitControls(camera, document.body );
 modeManager._defaultMode = 'navigation';
 modeManager.add('navigation', controls);
-modeManager.add('draw', new DrawMode(scene, camera));
-modeManager.add('drawplane', new DrawPlaneMode(modeManager, scene, camera, projector));
+modeManager.add('draw', new DrawMode(sceneRoot, camera));
+modeManager.add('drawplane', new DrawPlaneMode(modeManager, sceneRoot, camera, projector));
 
 modeManager.mode('navigation');
 
 updateSteps.push(modeManager);
 
-var sceneRoot = new THREE.Object3D();
-scene.add(sceneRoot);
 
 
 var plane;
