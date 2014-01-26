@@ -26,17 +26,25 @@ var lineMaterial = new THREE.LineBasicMaterial({
   color: 0xffffff
 });
 
+var helper;
 document.addEventListener('mousemove', function(event) {
 
   var isect = tools.mouseIntersections(sceneRoot, camera, new THREE.Vector2(event.clientX, event.clientY));
 
-  test.children.forEach(function(child) {
-    test.remove(child);
-  });
+  // test.children.forEach(function(child) {
+  //   test.remove(child);
+  // });
+
+  if (helper) {
+    helper.visible = false;
+  }
 
   if (isect && isect.face) {
     if (isect.face.ngonHelper) {
-      test.add(isect.face.ngonHelper);
+      helper = isect.face.ngonHelper;
+      isect.face.ngonHelper.visible = true;
+    
+    /* TODO: find the closest line and if the user is hovering, highlight it
     } else {
 
       var lineGeometry = new THREE.Geometry();
@@ -48,6 +56,7 @@ document.addEventListener('mousemove', function(event) {
 
       var line = new THREE.Line(lineGeometry, lineMaterial);
       test.add(line);
+    */
     }
   }
 });
@@ -68,7 +77,7 @@ scene.add(sceneRoot);
 var controls = new THREE.OrbitControls(camera, document.body );
 modeManager._defaultMode = 'navigation';
 modeManager.add('navigation', controls);
-modeManager.add('draw', new DrawMode(scene, sceneRoot, camera));
+modeManager.add('draw', new DrawMode(sceneRoot, sceneRoot, camera));
 modeManager.add('drawplane', new DrawPlaneMode(modeManager, sceneRoot, camera, projector));
 
 modeManager.mode('navigation');
@@ -84,24 +93,27 @@ var cube = new THREE.Mesh( new THREE.CubeGeometry( 20, 20, 5 ), new THREE.MeshLa
   shading: THREE.FlatShading
 }));
 
-tools.computeNgonHelpers(cube);
+
 
 cube.geometry.castShadow = true;
 cube.geometry.receiveShadow = true;
 cube.position.y = 100;
 sceneRoot.add( cube );
 
+tools.computeNgonHelpers(cube);
+
 var cube2 = new THREE.Mesh( new THREE.CubeGeometry( 100, 100, 5 ), new THREE.MeshLambertMaterial({
   color: 0xcccccc,
   shading: THREE.FlatShading,
 }));
 
-tools.computeNgonHelpers(cube2);
 
 cube2.geometry.castShadow = true;
 cube2.geometry.receiveShadow = true;
 cube2.position.x = 100;
 sceneRoot.add( cube2 );
+
+tools.computeNgonHelpers(cube2);
 
 window.addEventListener('keydown', function(event) {
   console.log(event.keyCode);

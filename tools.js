@@ -9,7 +9,11 @@ tools.mouseIntersections = function(root, camera, vec2) {
   var intersects = raycaster.intersectObject(root, true);
 
   if (intersects.length) {
-    return intersects[0];
+    for (var i=0; i<intersects.length; i++) {
+      if (!intersects[i].object.userData.ignoreRaycasts) {
+        return intersects[i];
+      }
+    }
   }
   return null;
 };
@@ -42,8 +46,10 @@ tools.groupFacesByNormal = function(triangles) {
   return ret;
 };
 
-tools.computeCoplanarFaces = function(geometry) {
+tools.computeCoplanarFaces = function(mesh) {
   var faceGeometry = [];
+  var geometry = mesh.geometry;
+  geometry.mergeVertices();
 
   var groups = tools.groupFacesByNormal(geometry.faces);
   // TODO: make this work with more than 2 faces per group
@@ -93,36 +99,26 @@ tools.computeCoplanarFaces = function(geometry) {
 
 
 tools.computeNgonHelpers = function(sourceMesh) {
-  var faceGeometries = tools.computeCoplanarFaces(sourceMesh.geometry);
-
+  var faceGeometries = tools.computeCoplanarFaces(sourceMesh);
   faceGeometries.forEach(function(obj) {
     var geometry = new THREE.Geometry();
-
     obj.faces.forEach(function(face) {
       var clone = face.clone();
-      
+
       clone.a = geometry.vertices.length;
-      geometry.vertices.push(sourceMesh.geometry.vertices[face.a]);
+      geometry.vertices.push(sourceMesh.geometry.vertices[face.a].clone());
       
       clone.b = geometry.vertices.length;
-      geometry.vertices.push(sourceMesh.geometry.vertices[face.b]);
+      geometry.vertices.push(sourceMesh.geometry.vertices[face.b].clone());
 
       clone.c = geometry.vertices.length;
-      geometry.vertices.push(sourceMesh.geometry.vertices[face.c]);
+      geometry.vertices.push(sourceMesh.geometry.vertices[face.c].clone());
 
       geometry.faces.push(clone);
     });
 
     var faces = obj.faces;
     var array = obj.verts;
-
-    //geometry.faces.push(new THREE.Face3(0, 1, 2));
-    //geometry.faces.push(new THREE.Face3(3, 2, 1));
-    
-    //var offset = THREE.GeometryUtils.center(geometry);
-    //geometry.computeCentroids();
-    //geometry.computeFaceNormals();
-    //geometry.computeVertexNormals();
 
     var mesh = new THREE.Mesh(
       geometry,
@@ -133,10 +129,16 @@ tools.computeNgonHelpers = function(sourceMesh) {
       })
     );
 
+    mesh.position.sub(THREE.GeometryUtils.center(mesh.geometry))
+
     mesh.doublesided = true;
     mesh.overdraw = true;
+    mesh.targetObject = sourceMesh;
 
-    mesh.position = sourceMesh.position;
+    mesh.userData.ignoreRaycasts = true;
+
+    sourceMesh.add(mesh);
+    mesh.visible = false;
 
     obj.faces.forEach(function(face) {
       face.ngonHelper = mesh;

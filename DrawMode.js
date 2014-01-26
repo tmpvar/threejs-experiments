@@ -25,22 +25,15 @@ DrawMode.prototype.activate = function(lastMode, options) {
 
     var coplanar;
 
-    // if (isect.faceIndex) {
-    //   var face = isect.object.geometry.faces[isect.faceIndex];
-    //   coplanar = face.ngonHelper.position.clone();
-    //   coplanar.setZ(10);
-    // } else {
+    if (typeof isect.faceIndex !== 'undefined') {
+      var face = isect.object.geometry.faces[isect.faceIndex];
+      coplanar = face.ngonHelper.position.clone().add(face.ngonHelper.parent.position);
+      this.plane.position.copy(coplanar);
+    } else {
       coplanar = isect.object.geometry.vertices[isect.face.a].clone().add(isect.object.position);
-    //}
- 
-    // TODO: need a method that will more appropriately locate the plane
-    //  an idea is:
-    //  - find coplanar points with the a,b,c of the isect
-    //  - compute center and place the plane there
-
-    coplanar.applyQuaternion(isect.object.quaternion);
-    this.plane.position.copy(coplanar);
-    this.plane.lookAt(coplanar.clone().add(isect.face.normal));
+    }
+    
+    this.plane.lookAt(coplanar.add(isect.face.normal));
   } else {
     this.plane.quaternion = this.camera.quaternion.clone();
   }
@@ -113,7 +106,7 @@ DrawMode.prototype.keydown = function(event) {
         centering.applyMatrix4(rot);
         obj.position.add(centering);
 
-        tools.computeNgonHelpers(obj);        
+      
         
         // rotate the object housing the extruded mesh
         // to match the drawing plane's normal
@@ -126,7 +119,7 @@ DrawMode.prototype.keydown = function(event) {
         obj.geometry.computeFaceNormals();
         obj.geometry.computeVertexNormals();
 
-
+        tools.computeNgonHelpers(obj);
 
         sceneRoot.add(obj);
         this.points = [];
