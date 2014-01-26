@@ -68,6 +68,12 @@ DrawMode.prototype.keydown = function(event) {
         var extrudePath = new THREE.Path();
 
         var shapeGeometry = new THREE.Geometry();
+
+        // Rewind the polygon into something the extruder can use
+        if (!THREE.Shape.Utils.isClockWise(this.points)) {
+          this.points.reverse();
+        }
+
         shapeGeometry.vertices = this.points;
 
         var originalCenter = THREE.GeometryUtils.center(shapeGeometry.clone());
