@@ -8,6 +8,7 @@ function DrawMode(scene, camera) {
   );
   this.plane.quaternion = this.camera.quaternion.clone();
   this.plane.overdraw = true;
+  this.plane.material.side = THREE.DoubleSide
   this.particles = new  THREE.Object3D();
 }
 
