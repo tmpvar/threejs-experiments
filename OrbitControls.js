@@ -244,17 +244,12 @@ THREE.OrbitControls = function ( object, domElement ) {
  
     if ( event.button === 0 ) {
  
-      var vector = new THREE.Vector3( ( event.clientX / window.innerWidth ) * 2 - 1, - ( event.clientY / window.innerHeight ) * 2 + 1, 0.5 );
-      projector.unprojectVector( vector, camera );
+      var isect = tools.mouseIntersections(sceneRoot, camera, new THREE.Vector2(event.clientX, event.clientY));
 
-      var raycaster = new THREE.Raycaster( camera.position, vector.sub( camera.position ).normalize() );
-
-      var intersects = raycaster.intersectObjects( scene.children );
-
-      if ( intersects.length > 0 ) {
+      if ( isect > 0 ) {
         event.stopImmediatePropagation();
-        controls.center.copy(intersects[0].object.position);
-        selectObject(intersects[0].object);
+        controls.center.copy(isect.object.position);
+        selectObject(isect.object);
       }
 
 

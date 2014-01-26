@@ -108,7 +108,9 @@ DrawMode.prototype.keydown = function(event) {
         obj.geometry.computeFaceNormals();
         obj.geometry.computeVertexNormals();
 
-        this.scene.add(obj);
+        tools.computeNgonHelpers(obj);
+
+        sceneRoot.add(obj);
         this.points = [];
         return true;
 
@@ -127,19 +129,14 @@ DrawMode.prototype.mousedown = function(event) {
 
   // drop a point at unprojected x, y, z
 
-  var vector = new THREE.Vector3( ( event.clientX / window.innerWidth ) * 2 - 1, - ( event.clientY / window.innerHeight ) * 2 + 1, 0 );
-  projector.unprojectVector( vector, camera );
+  var isect = tools.mouseIntersections(this.plane, this.camera, new THREE.Vector2(event.clientX, event.clientY));
 
-  var raycaster = new THREE.Raycaster( camera.position, vector.sub( camera.position ).normalize() );
-
-  var intersects = raycaster.intersectObject(this.plane);
-
-  if ( intersects.length > 0 ) {
+  if (isect) {
     this.handledMouseDown = true;
     var particle = new THREE.Sprite();
-    particle.position = intersects[0].point;
+    particle.position = isect.point;
 
-    var p = intersects[0].point.clone();
+    var p = isect.point.clone();
     p.particle = particle;
     this.points.push(p);
 

@@ -17,6 +17,43 @@ var modeManager = new ModeManager();
 
 });
 
+
+
+var test = new THREE.Object3D();
+scene.add(test);
+
+var lineMaterial = new THREE.LineBasicMaterial({
+  color: 0xffffff
+});
+
+document.addEventListener('mousemove', function(event) {
+
+  var isect = tools.mouseIntersections(sceneRoot, camera, new THREE.Vector2(event.clientX, event.clientY));
+
+  test.children.forEach(function(child) {
+    test.remove(child);
+  });
+
+  if (isect && isect.face) {
+    if (isect.face.ngonHelper) {
+      console.log('yay, helper');
+      test.add(isect.face.ngonHelper);
+    } else {
+
+      var lineGeometry = new THREE.Geometry();
+      lineGeometry.vertices.push(new THREE.Vector3(0, 10, 0));
+      lineGeometry.vertices.push(new THREE.Vector3(10, 0, 0));
+
+      lineGeometry.vertices[0] = isect.object.geometry.vertices[isect.face.a].clone().add(isect.object.position);
+      lineGeometry.vertices[1] = isect.object.geometry.vertices[isect.face.b].clone().add(isect.object.position);
+
+      var line = new THREE.Line(lineGeometry, lineMaterial);
+      test.add(line);
+    }
+  }
+});
+
+
 updateSteps.push(function() {
   
   var n = camera.position.clone().normalize().multiplyScalar(50);
@@ -36,6 +73,10 @@ modeManager.mode('navigation');
 
 updateSteps.push(modeManager);
 
+var sceneRoot = new THREE.Object3D();
+scene.add(sceneRoot);
+
+
 var plane;
 
 var cube = new THREE.Mesh( new THREE.CubeGeometry( 20, 20, 5 ), new THREE.MeshLambertMaterial({
@@ -43,20 +84,24 @@ var cube = new THREE.Mesh( new THREE.CubeGeometry( 20, 20, 5 ), new THREE.MeshLa
   shading: THREE.FlatShading
 }));
 
+tools.computeNgonHelpers(cube);
+
 cube.geometry.castShadow = true;
 cube.geometry.receiveShadow = true;
 cube.position.y = 100;
-scene.add( cube );
+sceneRoot.add( cube );
 
 var cube2 = new THREE.Mesh( new THREE.CubeGeometry( 100, 100, 5 ), new THREE.MeshLambertMaterial({
   color: 0xcccccc,
-  shading: THREE.FlatShading
+  shading: THREE.FlatShading,
 }));
+
+tools.computeNgonHelpers(cube2);
 
 cube2.geometry.castShadow = true;
 cube2.geometry.receiveShadow = true;
 cube2.position.x = 100;
-scene.add( cube2 );
+sceneRoot.add( cube2 );
 
 window.addEventListener('keydown', function(event) {
   console.log(event.keyCode);
@@ -83,7 +128,7 @@ function selectObject(object) {
     selectedObject = object;
     if (selectedObject && selectedObject.material.emissive) {
       selectedObject.oldHex = selectedObject.material.emissive.getHex();
-      selectedObject.material.emissive.setHex(selectedObject.oldHex+0x003300);
+      selectedObject.material.emissive.setHex(selectedObject.oldHex+0x000500);
     }
   }
 }

@@ -38,7 +38,6 @@ ModeManager.prototype.handle = function(type, event) {
     if (!this._modes[this._mode].handle(type, event)) {
 
       if (this._defaultMode && this._modes[this._defaultMode].handle) {
-        console.log('default', type)
         this._modes[this._defaultMode].handle(type, event);
       }
     }
