@@ -97,6 +97,8 @@ DrawMode.prototype.keydown = function(event) {
         var centering = new THREE.Vector3(0, 0, amount/2);
         centering.applyMatrix4(rot);
         obj.position.add(centering);
+
+        tools.computeNgonHelpers(obj);        
         
         // rotate the object housing the extruded mesh
         // to match the drawing plane's normal
@@ -109,7 +111,7 @@ DrawMode.prototype.keydown = function(event) {
         obj.geometry.computeFaceNormals();
         obj.geometry.computeVertexNormals();
 
-        tools.computeNgonHelpers(obj);
+
 
         sceneRoot.add(obj);
         this.points = [];

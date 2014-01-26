@@ -59,18 +59,32 @@ tools.computeCoplanarFaces = function(geometry) {
       seen[face.a] = seen[face.b] = seen[face.c] = true;
     });
 
-    var mat = new THREE.Matrix4(
-      verts[0].x, verts[0].y, verts[0].z, 1,
-      verts[1].x, verts[1].y, verts[1].z, 1,
-      verts[2].x, verts[2].y, verts[2].z, 1,
-      verts[3].x, verts[3].y, verts[3].z, 1
-    );
+    var mat;
+    if (verts.length > 3) {
+      mat = new THREE.Matrix4(
+        verts[0].x, verts[0].y, verts[0].z, 1,
+        verts[1].x, verts[1].y, verts[1].z, 1,
+        verts[2].x, verts[2].y, verts[2].z, 1,
+        verts[3].x, verts[3].y, verts[3].z, 1
+      );
+    } else {
+      mat = new THREE.Matrix4(
+        verts[0].x, verts[0].y, verts[0].z, 1,
+        verts[1].x, verts[1].y, verts[1].z, 1,
+        verts[2].x, verts[2].y, verts[2].z, 1,
+        verts[2].x, verts[2].y, verts[2].z, 1
+      );
+    }
 
-    if (!mat.determinant()) {
+    var det = mat.determinant()
+
+    if (Math.abs(det) < 0.0001) {
       faceGeometry.push({
         faces : group,  // TODO: there may be faces that get pruned above.
         verts : verts
       });
+    } else {
+      console.log('not coplanar :(', verts.length, det)
     }
   });
 
@@ -82,20 +96,33 @@ tools.computeNgonHelpers = function(sourceMesh) {
   var faceGeometries = tools.computeCoplanarFaces(sourceMesh.geometry);
 
   faceGeometries.forEach(function(obj) {
-    var faces = obj.faces;
-    var array = obj.verts;
     var geometry = new THREE.Geometry();
-    geometry.vertices = array.map(function(vert) {
-      return vert.clone();
+
+    obj.faces.forEach(function(face) {
+      var clone = face.clone();
+      
+      clone.a = geometry.vertices.length;
+      geometry.vertices.push(sourceMesh.geometry.vertices[face.a]);
+      
+      clone.b = geometry.vertices.length;
+      geometry.vertices.push(sourceMesh.geometry.vertices[face.b]);
+
+      clone.c = geometry.vertices.length;
+      geometry.vertices.push(sourceMesh.geometry.vertices[face.c]);
+
+      geometry.faces.push(clone);
     });
 
-    geometry.faces.push(new THREE.Face3(0, 1, 2));
-    geometry.faces.push(new THREE.Face3(3, 2, 1));
+    var faces = obj.faces;
+    var array = obj.verts;
+
+    //geometry.faces.push(new THREE.Face3(0, 1, 2));
+    //geometry.faces.push(new THREE.Face3(3, 2, 1));
     
     //var offset = THREE.GeometryUtils.center(geometry);
-    geometry.computeCentroids();
-    geometry.computeFaceNormals();
-    geometry.computeVertexNormals();
+    //geometry.computeCentroids();
+    //geometry.computeFaceNormals();
+    //geometry.computeVertexNormals();
 
     var mesh = new THREE.Mesh(
       geometry,
