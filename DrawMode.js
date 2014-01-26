@@ -25,13 +25,13 @@ DrawMode.prototype.activate = function(lastMode, options) {
 
     var coplanar;
 
-    if (isect.faceIndex) {
-      var face = isect.object.geometry.faces[isect.faceIndex];
-      coplanar = face.ngonHelper.position.clone();
-      coplanar.setZ(10);
-    } else {
+    // if (isect.faceIndex) {
+    //   var face = isect.object.geometry.faces[isect.faceIndex];
+    //   coplanar = face.ngonHelper.position.clone();
+    //   coplanar.setZ(10);
+    // } else {
       coplanar = isect.object.geometry.vertices[isect.face.a].clone().add(isect.object.position);
-    }
+    //}
  
     // TODO: need a method that will more appropriately locate the plane
     //  an idea is:
