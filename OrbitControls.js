@@ -246,8 +246,7 @@ THREE.OrbitControls = function ( object, domElement ) {
  
       var isect = tools.mouseIntersections(sceneRoot, camera, new THREE.Vector2(event.clientX, event.clientY));
 
-      if ( isect > 0 ) {
-        event.stopImmediatePropagation();
+      if (isect) {
         controls.center.copy(isect.object.position);
         selectObject(isect.object);
       }
