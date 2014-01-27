@@ -106,8 +106,6 @@ DrawMode.prototype.keydown = function(event) {
         centering.applyMatrix4(rot);
         obj.position.add(centering);
 
-      
-        
         // rotate the object housing the extruded mesh
         // to match the drawing plane's normal
         obj.geometry.applyMatrix(rot);

@@ -291,7 +291,7 @@ THREE.OrbitControls = function ( object, domElement ) {
       scope.rotateUp( 2 * Math.PI * rotateDelta.y / PIXELS_PER_ROUND * scope.userRotateSpeed );
  
       rotateStart.copy( rotateEnd );
- 
+      return true;
     // }   else if ( state === STATE.ZOOM ) {
  
     //   zoomEnd.set( event.clientX, event.clientY );
@@ -389,6 +389,6 @@ THREE.OrbitControls.prototype = Object.create( THREE.EventDispatcher.prototype )
 
 THREE.OrbitControls.prototype.handle = function(type, event) {
   if (typeof this[type] === 'function') {
-    this[type](event);
+    return this[type](event);
   }
 };

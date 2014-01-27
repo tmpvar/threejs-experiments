@@ -1,5 +1,5 @@
-
-var modeManager = new ModeManager();
+var rootModeManager = new ModeManager();
+var userModeManager = new ModeManager();
 
 [
   'mousedown', 'mousemove', 'mouseup',
@@ -13,50 +13,9 @@ var modeManager = new ModeManager();
     name = name[0];
   }
 
-  document.addEventListener(name, modeManager.handle.bind(modeManager, target));
+  document.addEventListener(name, rootModeManager.handle.bind(rootModeManager, target));
 
 });
-
-
-
-var test = new THREE.Object3D();
-scene.add(test);
-
-var lineMaterial = new THREE.LineBasicMaterial({
-  color: 0xffffff
-});
-
-var helper;
-document.addEventListener('mousemove', function(event) {
-
-  var isect = tools.mouseIntersections(sceneRoot, camera, new THREE.Vector2(event.clientX, event.clientY));
-
-  if (helper) {
-    helper.visible = false;
-  }
-
-  if (isect && isect.face) {
-    if (isect.face.ngonHelper) {
-      helper = isect.face.ngonHelper;
-      helper.visible = true;
-    
-    /* TODO: find the closest line and if the user is hovering, highlight it
-    } else {
-
-      var lineGeometry = new THREE.Geometry();
-      lineGeometry.vertices.push(new THREE.Vector3(0, 10, 0));
-      lineGeometry.vertices.push(new THREE.Vector3(10, 0, 0));
-
-      lineGeometry.vertices[0] = isect.object.geometry.vertices[isect.face.a].clone().add(isect.object.position);
-      lineGeometry.vertices[1] = isect.object.geometry.vertices[isect.face.b].clone().add(isect.object.position);
-
-      var line = new THREE.Line(lineGeometry, lineMaterial);
-      test.add(line);
-    */
-    }
-  }
-});
-
 
 updateSteps.push(function() {
   
@@ -70,15 +29,18 @@ updateSteps.push(function() {
 var sceneRoot = new THREE.Object3D();
 scene.add(sceneRoot);
 
+rootModeManager.add('user', userModeManager);
+rootModeManager.add('helper', new HelperMode(sceneRoot, camera), true);
+rootModeManager.mode('user');
+
 var controls = new THREE.OrbitControls(camera, document.body );
-modeManager._defaultMode = 'navigation';
-modeManager.add('navigation', controls);
-modeManager.add('draw', new DrawMode(sceneRoot, sceneRoot, camera));
-modeManager.add('drawplane', new DrawPlaneMode(modeManager, sceneRoot, camera, projector));
+userModeManager.add('navigation', controls, true);
+userModeManager.add('draw', new DrawMode(sceneRoot, sceneRoot, camera));
+userModeManager.add('drawplane', new DrawPlaneMode(userModeManager, sceneRoot, camera, projector));
 
-modeManager.mode('navigation');
+userModeManager.mode('navigation');
 
-updateSteps.push(modeManager);
+updateSteps.push(rootModeManager);
 
 
 
@@ -120,7 +82,7 @@ window.addEventListener('keydown', function(event) {
     break;
 
     case 68: // d
-      modeManager.mode('drawplane');
+      userModeManager.mode('drawplane');
     break;
   }
 });

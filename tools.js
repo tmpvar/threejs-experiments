@@ -126,10 +126,11 @@ tools.computeNgonHelpers = function(sourceMesh) {
 
     var mesh = new THREE.Mesh(
       geometry,
-      new THREE.MeshBasicMaterial({
-        color: 0xF0FF33,
+      new THREE.MeshLambertMaterial({
+        color: 0xFBF223,
         transparent: true,
-        opacity: .4
+        opacity: 1,
+        shading: THREE.FlatShading
       })
     );
 
