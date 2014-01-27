@@ -15,10 +15,10 @@ function DrawMode(drawPlaneRoot, scene, camera) {
 }
 
 DrawMode.prototype.activate = function(lastMode, options) {
-  var draw = new Draw();
+  var draw = this.draw = new Draw();
   draw.canvasDimensions(100, 100);
   draw.render();
-  var texture = new THREE.Texture(draw.canvas);
+  var texture = this.texture = new THREE.Texture(draw.canvas);
   texture.needsUpdate = true;
   texture.magFilter = THREE.NearestFilter;
   texture.minFilter = THREE.LinearMipMapLinearFilter;
@@ -174,6 +174,7 @@ DrawMode.prototype.mousedown = function(event) {
 };
 
 DrawMode.prototype.mouseup = function(event) {
+
   if (this.handledMouseDown) {
     this.handledMouseDown = false;
     return true;
@@ -181,10 +182,25 @@ DrawMode.prototype.mouseup = function(event) {
 }
 
 
-DrawMode.prototype.handle = function(type, event) {
-  if (typeof this[type] === 'function') {
-    return this[type](event);
+DrawMode.prototype.mousemove = function(event) {
+  if (this.draw) {
+    this.handledMouseDown = true;
+    // TODO: find the 2d point on the plane
+    var isect = tools.mouseIntersections(this.plane, this.camera, new THREE.Vector2(event.clientX, event.clientY));
+    if (isect) {
+      isect.point.applyMatrix4(new THREE.Matrix4().getInverse(this.plane.matrixWorld));
+      this.draw.handle('mousemove', Vec2(Math.round(isect.point.x)+50, -Math.round(isect.point.y)+50));
+      this.draw.render();
+      this.plane.material.map.needsUpdate = true;
+      return true;
+    }
   }
+}
+
+DrawMode.prototype.handle = function(type, event) {
+if (typeof this[type] === 'function') {
+  return this[type](event);
+}
 };
 
 DrawMode.prototype.update = function(dt) {
