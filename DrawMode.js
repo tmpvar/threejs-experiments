@@ -9,11 +9,27 @@ function DrawMode(drawPlaneRoot, scene, camera) {
   );
   this.plane.quaternion = this.camera.quaternion.clone();
   this.plane.overdraw = true;
+  this.plane.doublesided = true;
   this.plane.material.side = THREE.DoubleSide
   this.particles = new  THREE.Object3D();
 }
 
 DrawMode.prototype.activate = function(lastMode, options) {
+  var draw = new Draw();
+  draw.canvasDimensions(100, 100);
+  draw.render();
+  var texture = new THREE.Texture(draw.canvas);
+  texture.needsUpdate = true;
+  texture.magFilter = THREE.NearestFilter;
+  texture.minFilter = THREE.LinearMipMapLinearFilter;
+
+  var material = new THREE.MeshBasicMaterial({
+    map : texture,
+    transparent: true
+  });
+
+  this.plane.material = material;
+
   this.lastMode = lastMode;
 
   // Keep the default mode from catching mouseup which causes

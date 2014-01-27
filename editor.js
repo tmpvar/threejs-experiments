@@ -98,7 +98,7 @@ function selectObject(object) {
     selectedObject = object;
     if (selectedObject && selectedObject.material.emissive) {
       selectedObject.oldHex = selectedObject.material.emissive.getHex();
-      selectedObject.material.emissive.setHex(selectedObject.oldHex+0x000500);
+      selectedObject.material.emissive.setHex(selectedObject.oldHex+0x111100);
     }
   }
 }
