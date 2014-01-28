@@ -70,7 +70,7 @@ DrawMode.prototype.keydown = function(event) {
 
   switch (event.keyCode) {
     case 27:
-      if (this.points.length > 2) {            
+      if (this.points.length > 2) {
 
         // TODO: collect this from a modal
         var amount = 100;
@@ -172,13 +172,12 @@ DrawMode.prototype.mousedown = function(event) {
     isect.point.applyMatrix4(new THREE.Matrix4().getInverse(this.plane.matrixWorld));
 
     this.plane.material.map.needsUpdate = true;
-    event.position = this.mouse.clone();
+    event.position = Vec2(Math.round(isect.point.x), -Math.round(isect.point.y));
     return this.draw.handle('mousedown', event);
   }
 };
 
 DrawMode.prototype.mouseup = function(event) {
-
   if (this.handledMouseDown) {
     this.handledMouseDown = false;
     return true;
@@ -194,10 +193,7 @@ DrawMode.prototype.mousemove = function(event) {
       isect.point.applyMatrix4(new THREE.Matrix4().getInverse(this.plane.matrixWorld));
       
       event.position = Vec2(Math.round(isect.point.x), -Math.round(isect.point.y));
-      this.mouse = event.position;
-      if (this.draw.handle('mousemove', event)) {
-        return true;
-      }
+      return this.draw.handle('mousemove', event);
     }
   }
 }
