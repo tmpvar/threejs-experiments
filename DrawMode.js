@@ -16,7 +16,8 @@ function DrawMode(drawPlaneRoot, scene, camera) {
 
 DrawMode.prototype.activate = function(lastMode, options) {
   var draw = this.draw = new Draw();
-  draw.canvasDimensions(100, 100);
+  draw.canvasDimensions(2000, 2000);
+  draw.scale = 20;
   draw.render();
   var texture = this.texture = new THREE.Texture(draw.canvas);
   texture.needsUpdate = true;
@@ -192,8 +193,8 @@ DrawMode.prototype.mousemove = function(event) {
     if (isect) {
       isect.point.applyMatrix4(new THREE.Matrix4().getInverse(this.plane.matrixWorld));
       this.mouse = Vec2(Math.round(isect.point.x), -Math.round(isect.point.y));
-
-      if (this.draw.handle('mousemove', this.mouse)) {
+      event.position = this.mouse.clone();
+      if (this.draw.handle('mousemove', event)) {
         this.plane.material.map.needsUpdate = true;
         return true;
       }
