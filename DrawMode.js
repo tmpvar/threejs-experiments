@@ -14,11 +14,11 @@ function DrawMode(drawPlaneRoot, scene, camera) {
   this.particles = new  THREE.Object3D();
 }
 
+
 DrawMode.prototype.activate = function(lastMode, options) {
   var draw = this.draw = new Draw();
-  draw.canvasDimensions(2000, 2000);
-  draw.scale = 20;
-  draw.render();
+  draw.canvasDimensions(1000, 1000);
+  draw.scale = 10;
   var texture = this.texture = new THREE.Texture(draw.canvas);
   texture.needsUpdate = true;
   texture.magFilter = THREE.NearestFilter;
@@ -192,10 +192,10 @@ DrawMode.prototype.mousemove = function(event) {
     var isect = tools.mouseIntersections(this.plane, this.camera, new THREE.Vector2(event.clientX, event.clientY));
     if (isect) {
       isect.point.applyMatrix4(new THREE.Matrix4().getInverse(this.plane.matrixWorld));
-      this.mouse = Vec2(Math.round(isect.point.x), -Math.round(isect.point.y));
-      event.position = this.mouse.clone();
+      
+      event.position = Vec2(Math.round(isect.point.x), -Math.round(isect.point.y));
+      this.mouse = event.position;
       if (this.draw.handle('mousemove', event)) {
-        this.plane.material.map.needsUpdate = true;
         return true;
       }
     }
@@ -211,5 +211,9 @@ DrawMode.prototype.handle = function(type, event) {
 };
 
 DrawMode.prototype.update = function(dt) {
-
+  if (this.draw && this.draw._dirty) {
+    this.draw.clearCanvas();
+    this.draw.render();
+    this.plane.material.map.needsUpdate = true;
+  }
 };
