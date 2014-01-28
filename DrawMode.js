@@ -14,7 +14,6 @@ function DrawMode(drawPlaneRoot, scene, camera) {
   this.particles = new  THREE.Object3D();
 }
 
-
 DrawMode.prototype.activate = function(lastMode, options) {
   var draw = this.draw = new Draw();
   draw.canvasDimensions(1000, 1000);
@@ -68,37 +67,48 @@ DrawMode.prototype.deactivate = function() {
 
 DrawMode.prototype.keydown = function(event) {
 
+  if (this.draw.handle('keydown', event)) {
+    return true;
+  }
+
   switch (event.keyCode) {
-    case 27:
-      if (this.points.length > 2) {
+    case 69:
+      // TODO: check for self-intersections
+      var seen = {};
+      var points = this.draw.computeGeometry();
+
+      points = points.filter(function(a) {
+        var key = a.toString();
+        var ret = !seen[key];
+        seen[key] = true;
+        return ret;
+      }).map(function(a) {
+        var vec = a.clone();
+        vec.y = -vec.y;
+        return vec;
+      })
+
+      if (points.length > 2) {
 
         // TODO: collect this from a modal
         var amount = 100;
         
-        var extrudePath = new THREE.Path();
 
-        var shapeGeometry = new THREE.Geometry();
+        var shape = new THREE.Shape();
+        shape.fromPoints(points);
+
+        var shapeGeometry = new THREE.ShapeGeometry(shape);
 
         // Rewind the polygon into something the extruder can use
-        if (!THREE.Shape.Utils.isClockWise(this.points)) {
-          this.points.reverse();
+        if (!THREE.Shape.Utils.isClockWise(points)) {
+          points.reverse();
         }
 
-        shapeGeometry.vertices = this.points;
-
-        var originalCenter = THREE.GeometryUtils.center(shapeGeometry.clone());
-
-        // apply inverse transform so the shape will be 
-        // properly oriented
-        shapeGeometry.applyMatrix(new THREE.Matrix4().getInverse(this.plane.matrixWorld));
-
         // Extrude the geometry without bevel, by the specified amount
-        var geometry = new THREE.ExtrudeGeometry(new THREE.Shape(shapeGeometry.vertices), {
+        var geometry = new THREE.ExtrudeGeometry(new THREE.Shape(points), {
           amount: amount,
           bevelEnabled: false
         });
-
-        THREE.GeometryUtils.center(geometry);
 
         geometry.computeCentroids();
         geometry.computeFaceNormals()
@@ -120,15 +130,11 @@ DrawMode.prototype.keydown = function(event) {
         // This will move the object's position so that the edge of the
         // extruded mesh touches the drawing plane
         var centering = new THREE.Vector3(0, 0, amount/2);
-        centering.applyMatrix4(rot);
-        obj.position.add(centering);
+        obj.position.applyMatrix4(this.plane.matrixWorld);
 
         // rotate the object housing the extruded mesh
         // to match the drawing plane's normal
         obj.geometry.applyMatrix(rot);
-        
-        // move the object back to where we drew it on the plane
-        obj.position.sub(originalCenter);
 
         obj.geometry.computeCentroids();
         obj.geometry.computeFaceNormals();
@@ -158,16 +164,15 @@ DrawMode.prototype.mousedown = function(event) {
   var isect = tools.mouseIntersections(this.plane, this.camera, new THREE.Vector2(event.clientX, event.clientY));
 
   if (isect) {
-    this.handledMouseDown = true;
-    var particle = new THREE.Sprite();
-    particle.position = isect.point;
+    // var particle = new THREE.Sprite();
+    // particle.position = isect.point;
 
-    var p = isect.point.clone();
-    p.particle = particle;
-    this.points.push(p);
+    // var p = isect.point.clone();
+    // p.particle = particle;
+    // this.points.push(p);
 
-    particle.scale.x = particle.scale.y = 1;
-    this.particles.add(particle);
+    // particle.scale.x = particle.scale.y = 1;
+    // this.particles.add(particle);
 
     isect.point.applyMatrix4(new THREE.Matrix4().getInverse(this.plane.matrixWorld));
 
@@ -176,14 +181,6 @@ DrawMode.prototype.mousedown = function(event) {
     return this.draw.handle('mousedown', event);
   }
 };
-
-DrawMode.prototype.mouseup = function(event) {
-  if (this.handledMouseDown) {
-    this.handledMouseDown = false;
-    return true;
-  }
-}
-
 
 DrawMode.prototype.mousemove = function(event) {
   if (this.draw) {
