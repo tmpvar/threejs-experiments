@@ -168,8 +168,11 @@ DrawMode.prototype.mousedown = function(event) {
     particle.scale.x = particle.scale.y = 1;
     this.particles.add(particle);
 
-    // Let the mode manager know that we handled the mousedown
-    return true;
+    isect.point.applyMatrix4(new THREE.Matrix4().getInverse(this.plane.matrixWorld));
+
+    this.plane.material.map.needsUpdate = true;
+    event.position = this.mouse.clone();
+    return this.draw.handle('mousedown', event);
   }
 };
 
@@ -185,22 +188,25 @@ DrawMode.prototype.mouseup = function(event) {
 DrawMode.prototype.mousemove = function(event) {
   if (this.draw) {
     this.handledMouseDown = true;
-    // TODO: find the 2d point on the plane
     var isect = tools.mouseIntersections(this.plane, this.camera, new THREE.Vector2(event.clientX, event.clientY));
     if (isect) {
       isect.point.applyMatrix4(new THREE.Matrix4().getInverse(this.plane.matrixWorld));
-      this.draw.handle('mousemove', Vec2(Math.round(isect.point.x)+50, -Math.round(isect.point.y)+50));
-      this.draw.render();
-      this.plane.material.map.needsUpdate = true;
-      return true;
+      this.mouse = Vec2(Math.round(isect.point.x), -Math.round(isect.point.y));
+
+      if (this.draw.handle('mousemove', this.mouse)) {
+        this.plane.material.map.needsUpdate = true;
+        return true;
+      }
     }
   }
 }
 
 DrawMode.prototype.handle = function(type, event) {
-if (typeof this[type] === 'function') {
-  return this[type](event);
-}
+  if (typeof this[type] === 'function') {
+    if (!this[type](event) && this.draw) {
+      return this.draw.handle(type, event);
+    }
+  }
 };
 
 DrawMode.prototype.update = function(dt) {

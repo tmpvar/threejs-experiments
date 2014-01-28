@@ -16,8 +16,7 @@ scene.add(camera);
 projector = new THREE.Projector();
 renderer = new THREE.WebGLRenderer({
   antialias : true,
-  stencil: true,
-  precision: "highp"
+  stencil: true
 });
 
 var light = new THREE.HemisphereLight( 0xffffff, 0x222233, .6);
