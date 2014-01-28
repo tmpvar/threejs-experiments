@@ -95,7 +95,6 @@ DrawMode.prototype.keydown = function(event) {
 
         // TODO: collect this from a modal
         var amount = 100;
-        
 
         var shape = new THREE.Shape();
         shape.fromPoints(points);
@@ -162,25 +161,15 @@ DrawMode.prototype.keydown = function(event) {
 
 DrawMode.prototype.mousedown = function(event) {
 
-  // drop a point at unprojected x, y, z
-
   var isect = tools.mouseIntersections(this.plane, this.camera, new THREE.Vector2(event.clientX, event.clientY));
 
   if (isect) {
-    // var particle = new THREE.Sprite();
-    // particle.position = isect.point;
-
-    // var p = isect.point.clone();
-    // p.particle = particle;
-    // this.points.push(p);
-
-    // particle.scale.x = particle.scale.y = 1;
-    // this.particles.add(particle);
-
     isect.point.applyMatrix4(new THREE.Matrix4().getInverse(this.plane.matrixWorld));
 
     this.plane.material.map.needsUpdate = true;
     event.position = Vec2(Math.round(isect.point.x), -Math.round(isect.point.y));
+
+    // Forward the intersection off into 2d draw land
     return this.draw.handle('mousedown', event);
   }
 };
