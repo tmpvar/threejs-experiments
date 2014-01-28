@@ -73,6 +73,9 @@ DrawMode.prototype.keydown = function(event) {
 
   switch (event.keyCode) {
     case 69:
+
+      this.draw.modeManager.exit();
+
       // TODO: check for self-intersections
       var seen = {};
       var points = this.draw.computeGeometry();
