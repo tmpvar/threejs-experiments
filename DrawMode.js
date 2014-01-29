@@ -48,7 +48,7 @@ DrawMode.prototype.activate = function(lastMode, options) {
     } else {
       coplanar = isect.object.geometry.vertices[isect.face.a].clone().add(isect.object.position);
     }
-    
+
     this.plane.lookAt(coplanar.add(isect.face.normal));
   } else {
     this.plane.quaternion = this.camera.quaternion.clone();
@@ -57,7 +57,7 @@ DrawMode.prototype.activate = function(lastMode, options) {
   this.drawPlaneRoot.add(this.particles);
   this.drawPlaneRoot.add(this.plane);
   this.points = [];
-  
+
 };
 
 DrawMode.prototype.deactivate = function() {
@@ -76,38 +76,43 @@ DrawMode.prototype.keydown = function(event) {
 
       this.draw.modeManager.exit();
 
+
       // TODO: check for self-intersections
-      var seen = {};
-      var points = this.draw.computeGeometry();
 
-      points = points.filter(function(a) {
-        var key = a.toString();
-        var ret = !seen[key];
-        seen[key] = true;
-        return ret;
-      }).map(function(a) {
-        var vec = a.clone();
-        vec.y = -vec.y;
-        return vec;
-      })
+      // var seen = {};
+      // TODO: maybe don't mutate the renderables array
+      var drawings = this.draw.renderables.concat([]).sort(function(a, b) {
+        return (Math.abs(a.area()) > Math.abs(b.area())) ? -1 : 1;
+      });
 
-      if (points.length > 2) {
+      drawings.forEach(function(a) {
+        console.log(a.area());
+      });
+
+      var shapes = [];
+      var generateShapes = function(array, index) {
+        var shape = new THREE.Shape(array[index].computeGeometry([]));
+        for (var i=index; i<array.length-1; i++) {
+          if (!array[index].contains(array[i+1])) {
+            generateShapes(array, i+1)
+          } else {
+            shape.holes.push(new THREE.Shape(array[i+1].computeGeometry([]).map(function(point) {
+              return new THREE.Vector2(point.x, point.y);
+            })));
+          }
+        }
+        shapes.push(shape);
+      };
+
+      generateShapes(drawings, 0);
+
+      shapes.forEach(function(shape) {
 
         // TODO: collect this from a modal
         var amount = 100;
 
-        var shape = new THREE.Shape();
-        shape.fromPoints(points);
-
-        var shapeGeometry = new THREE.ShapeGeometry(shape);
-
-        // Rewind the polygon into something the extruder can use
-        if (!THREE.Shape.Utils.isClockWise(points)) {
-          points.reverse();
-        }
-
         // Extrude the geometry without bevel, by the specified amount
-        var geometry = new THREE.ExtrudeGeometry(new THREE.Shape(points), {
+        var geometry = new THREE.ExtrudeGeometry(shape, {
           amount: amount,
           bevelEnabled: false
         });
@@ -128,7 +133,7 @@ DrawMode.prototype.keydown = function(event) {
         obj.geometry.receiveShadow = true;
 
         var rot = new THREE.Matrix4().extractRotation(this.plane.matrixWorld)
-        
+
         // This will move the object's position so that the edge of the
         // extruded mesh touches the drawing plane
         var centering = new THREE.Vector3(0, 0, amount/2);
@@ -148,13 +153,15 @@ DrawMode.prototype.keydown = function(event) {
         this.points = [];
         return true;
 
-      } else {
-        event.modeManager.mode('navigation');
-        while (this.points.length) {
-          this.particles.remove(this.points.pop().particle);
-        }
-        return true;
-      }
+      }.bind(this));
+      //  else {
+      //   event.modeManager.mode('navigation');
+      //   while (this.points.length) {
+      //     this.particles.remove(this.points.pop().particle);
+      //   }
+      //   return true;
+      // }
+
     break;
   }
 }
@@ -180,7 +187,7 @@ DrawMode.prototype.mousemove = function(event) {
     var isect = tools.mouseIntersections(this.plane, this.camera, new THREE.Vector2(event.clientX, event.clientY));
     if (isect) {
       isect.point.applyMatrix4(new THREE.Matrix4().getInverse(this.plane.matrixWorld));
-      
+
       event.position = Vec2(Math.round(isect.point.x), -Math.round(isect.point.y));
       return this.draw.handle('mousemove', event);
     }
