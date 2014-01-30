@@ -54,16 +54,104 @@ DrawMode.prototype.activate = function(lastMode, options) {
     this.plane.quaternion = this.camera.quaternion.clone();
   }
 
-  this.drawPlaneRoot.add(this.particles);
   this.drawPlaneRoot.add(this.plane);
-  this.points = [];
-
 };
 
 DrawMode.prototype.deactivate = function() {
   this.drawPlaneRoot.remove(this.plane);
-  this.drawPlaneRoot.remove(this.particles);
 };
+
+DrawMode.prototype.createShape = function(obj, hole) {
+  var points = obj.computeGeometry([]).map(function(point) {
+    return new THREE.Vector2(point.x, point.y);
+  });
+
+  return new THREE.Shape(points);
+};
+
+DrawMode.prototype.generateShapes = function(array) {
+  array = array.concat();
+
+  array.sort(function(a, b) {
+    return (Math.abs(a.area()) > Math.abs(b.area())) ? -1 : 1;
+  });
+
+  var raw = new Array();
+
+  for (var i = 0; i<array.length; i++) {
+    var inner = array[i];
+    inner.shape = this.createShape(array[i]);
+
+    for (var j = 0; j<raw.length; j++) {
+      var outer = raw[j];
+      if (outer.contains(inner)) {
+
+        if (!outer.isHole) {
+          inner.isHole = true;
+        }
+        outer.shape.holes.push(inner.shape);
+        break;
+      }
+    }
+
+    raw.unshift(inner);
+  }
+
+  return raw.filter(function(a) {
+            return !a.isHole;
+          }).map(function(a) {
+            return a.shape;
+          });
+;
+};
+
+DrawMode.prototype.alignWithPlane = function(obj) {
+  var rot = new THREE.Matrix4().extractRotation(this.plane.matrixWorld)
+
+  // This will move the object's position so that the edge of the
+  // extruded mesh touches the drawing plane
+  obj.position.applyMatrix4(this.plane.matrixWorld);
+
+  // rotate the object housing the extruded mesh
+  // to match the drawing plane's normal
+  obj.geometry.applyMatrix(rot);
+
+  obj.geometry.castShadow = true;
+  obj.geometry.receiveShadow = true;
+  obj.geometry.computeCentroids();
+  obj.geometry.computeFaceNormals();
+  obj.geometry.computeVertexNormals();
+};
+
+
+DrawMode.prototype.extrudeGeometry = function(shapes, amount, merge) {
+  // Extrude the geometry without bevel, by the specified amount
+  var geometry = new THREE.ExtrudeGeometry(shapes, {
+    amount: amount,
+    bevelEnabled: false
+  });
+
+  var obj = new THREE.Mesh(
+    geometry,
+    new THREE.MeshLambertMaterial({
+      color: 0xFFFFFF,
+      shading: THREE.FlatShading
+    })
+  );
+
+
+  this.alignWithPlane(obj);
+
+  if (merge) {
+
+
+
+
+  }
+
+
+  return obj;
+}
 
 DrawMode.prototype.keydown = function(event) {
 
@@ -78,85 +166,17 @@ DrawMode.prototype.keydown = function(event) {
 
       // TODO: check for self-intersections
 
-      // var seen = {};
-      var drawings = this.draw.renderables.concat().sort(function(a, b) {
-        return (Math.abs(a.area()) > Math.abs(b.area())) ? -1 : 1;
-      });
+      var shapes = this.generateShapes(this.draw.renderables);
 
-      var createShape = function(obj, hole) {
-        var points = obj.computeGeometry([]).map(function(point) {
-          return new THREE.Vector2(point.x, point.y);
-        });
-
-        return new THREE.Shape(points);
-      };
-
-      var generateShapes = function(array) {
-        var raw = new Array();
-
-        for (var i = 0; i<array.length; i++) {
-          var inner = array[i];
-          inner.shape = createShape(array[i]);
-
-          for (var j = 0; j<raw.length; j++) {
-            var outer = raw[j];
-            if (outer.contains(inner)) {
-
-              if (!outer.isHole) {
-                inner.isHole = true;
-              }
-              outer.shape.holes.push(inner.shape);
-              break;
-            }
-          }
-
-          raw.unshift(inner);
-        }
-        return raw;
-      }
-
-      var shapes = generateShapes(drawings).filter(function(a) {
-        return !a.isHole;
-      }).map(function(a) {
-        return a.shape;
-      });
-
-      // TODO: collect this from a modal
+      // TODO: collect these from a modal
       var amount = 100;
+      var merge = true;
 
-      // Extrude the geometry without bevel, by the specified amount
-      var geometry = new THREE.ExtrudeGeometry(shapes, {
-        amount: amount,
-        bevelEnabled: false
-      });
+      var mesh = this.extrudeGeometry(shapes, amount, merge);
 
-      var obj = new THREE.Mesh(
-        geometry,
-        new THREE.MeshLambertMaterial({
-          color: 0xFFFFFF,
-          shading: THREE.FlatShading
-        })
-      );
+      tools.computeNgonHelpers(mesh);
 
-      var rot = new THREE.Matrix4().extractRotation(this.plane.matrixWorld)
-
-      // This will move the object's position so that the edge of the
-      // extruded mesh touches the drawing plane
-      obj.position.applyMatrix4(this.plane.matrixWorld);
-
-      // rotate the object housing the extruded mesh
-      // to match the drawing plane's normal
-      obj.geometry.applyMatrix(rot);
-
-      obj.geometry.castShadow = true;
-      obj.geometry.receiveShadow = true;
-      obj.geometry.computeCentroids();
-      obj.geometry.computeFaceNormals();
-      obj.geometry.computeVertexNormals();
-
-      tools.computeNgonHelpers(obj);
-
-      sceneRoot.add(obj);
+      this.scene.add(mesh);
       this.points = [];
       return true;
     break;
