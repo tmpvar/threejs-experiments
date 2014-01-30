@@ -244,7 +244,11 @@ THREE.OrbitControls = function ( object, domElement ) {
  
     if ( event.button === 0 ) {
  
-      var isect = tools.mouseIntersections(sceneRoot, camera, new THREE.Vector2(event.clientX, event.clientY));
+      var isect = tools.mouseNgonHelperIntersection(
+        sceneRoot,
+        camera,
+        new THREE.Vector2(event.clientX, event.clientY)
+      );
 
       if (isect) {
         controls.center.copy(isect.object.position);

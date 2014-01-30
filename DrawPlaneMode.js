@@ -15,7 +15,7 @@ DrawPlaneMode.prototype.deactivate = function() {
 };
 
 DrawPlaneMode.prototype.mousedown = function(event) {
-  var isect = tools.mouseIntersections(this.scene, this.camera, new THREE.Vector2(event.clientX, event.clientY));
+  var isect = tools.mouseNgonHelperIntersection(this.scene, this.camera, new THREE.Vector2(event.clientX, event.clientY));
 
   if (isect) {
     this.modeManager.mode('draw', {

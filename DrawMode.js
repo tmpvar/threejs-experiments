@@ -231,7 +231,7 @@ DrawMode.prototype.keydown = function(event) {
 
 DrawMode.prototype.mousedown = function(event) {
 
-  var isect = tools.mouseIntersections(this.plane, this.camera, new THREE.Vector2(event.clientX, event.clientY));
+  var isect = tools.mouseIntersection(this.plane, this.camera, new THREE.Vector2(event.clientX, event.clientY));
 
   if (isect) {
     isect.point.applyMatrix4(new THREE.Matrix4().getInverse(this.plane.matrixWorld));
@@ -247,7 +247,7 @@ DrawMode.prototype.mousedown = function(event) {
 DrawMode.prototype.mousemove = function(event) {
   if (this.draw) {
     this.handledMouseDown = true;
-    var isect = tools.mouseIntersections(this.plane, this.camera, new THREE.Vector2(event.clientX, event.clientY));
+    var isect = tools.mouseIntersection(this.plane, this.camera, new THREE.Vector2(event.clientX, event.clientY));
     if (isect) {
       isect.point.applyMatrix4(new THREE.Matrix4().getInverse(this.plane.matrixWorld));
 

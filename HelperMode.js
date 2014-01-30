@@ -6,7 +6,7 @@ function HelperMode(sceneObject, camera) {
 
 HelperMode.prototype.mousemove = function(event) {
 
-  var isect = tools.mouseIntersections(this.sceneObject, this.camera, new THREE.Vector2(event.clientX, event.clientY));
+  var isect = tools.mouseNgonHelperIntersection(this.sceneObject, this.camera, new THREE.Vector2(event.clientX, event.clientY));
 
   if (this.helper) {
     this.helper.visible = false;
