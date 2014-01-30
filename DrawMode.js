@@ -41,8 +41,10 @@ DrawMode.prototype.activate = function(lastMode, options) {
 
     var coplanar;
 
+    this.targetMesh = null;
     if (typeof isect.faceIndex !== 'undefined') {
       var face = isect.object.geometry.faces[isect.faceIndex];
+      this.targetMesh = isect.object;
       coplanar = face.ngonHelper.position.clone().add(face.ngonHelper.parent.position);
       this.plane.position.copy(coplanar);
     } else {
@@ -124,7 +126,7 @@ DrawMode.prototype.alignWithPlane = function(obj) {
 };
 
 
-DrawMode.prototype.extrudeGeometry = function(shapes, amount, merge) {
+DrawMode.prototype.shapesToGeometry = function(shapes, amount) {
   // Extrude the geometry without bevel, by the specified amount
   var geometry = new THREE.ExtrudeGeometry(shapes, {
     amount: amount,
@@ -139,18 +141,44 @@ DrawMode.prototype.extrudeGeometry = function(shapes, amount, merge) {
     })
   );
 
-
   this.alignWithPlane(obj);
+
+  return obj;
+}
+
+
+DrawMode.prototype.extrudeGeometry = function(shapes, amount, merge) {
+  var obj = this.shapesToGeometry(shapes, amount);
 
   if (merge) {
 
+    var extension = new ThreeBSP(obj);
+    var target = new ThreeBSP(this.targetMesh);
 
+    var union_bsp = target.union(extension);
 
-
+    obj = union_bsp.toMesh(this.targetMesh.material);
+    this.targetMesh.parent.add(obj);
+    this.targetMesh.parent.remove(this.targetMesh);
+  } else {
+    this.scene.add(obj);
   }
 
-
   return obj;
+}
+
+DrawMode.prototype.subtractGeometry = function(shapes, amount) {
+  var obj = this.shapesToGeometry(shapes, amount);
+
+  var remove = new ThreeBSP(obj);
+  var target = new ThreeBSP(this.targetMesh);
+
+  var union_bsp = target.intersect(remove);
+
+  var result = union_bsp.toMesh(this.targetMesh.material);
+  this.targetMesh.parent.add(result);
+  this.targetMesh.parent.remove(this.targetMesh);
+  return result;
 }
 
 DrawMode.prototype.keydown = function(event) {
@@ -160,7 +188,8 @@ DrawMode.prototype.keydown = function(event) {
   }
 
   switch (event.keyCode) {
-    case 69:
+
+    case 69: // [e]xtrude
 
       this.draw.modeManager.exit();
 
@@ -176,8 +205,25 @@ DrawMode.prototype.keydown = function(event) {
 
       tools.computeNgonHelpers(mesh);
 
-      this.scene.add(mesh);
-      this.points = [];
+      return true;
+    break;
+
+    case 83: // [s]ubtract
+
+      this.draw.modeManager.exit();
+
+      // TODO: check for self-intersections
+
+      var shapes = this.generateShapes(this.draw.renderables);
+
+      // TODO: collect these from a modal
+      var amount = -100;
+      var merge = true;
+
+      var mesh = this.subtractGeometry(shapes, amount, merge);
+
+      tools.computeNgonHelpers(mesh);
+
       return true;
     break;
   }
