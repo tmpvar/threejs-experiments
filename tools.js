@@ -8,6 +8,12 @@ tools.mouseIntersections = function(root, camera, vec2) {
 
   var intersects = raycaster.intersectObject(root, true);
 
+  return intersects;
+};
+
+tools.mouseIntersection = function(root, camera, vec2) {
+  var intersects = tools.mouseIntersections(root, camera, vec2);
+
   if (intersects.length) {
     for (var i=0; i<intersects.length; i++) {
       if (!intersects[i].object.userData.ignoreRaycasts) {
@@ -18,100 +24,126 @@ tools.mouseIntersections = function(root, camera, vec2) {
   return null;
 };
 
+
+tools.mouseNgonHelperIntersection = function(root, camera, vec2) {
+  var isects = tools.mouseIntersections(root, camera, vec2);
+
+  return isects.filter(function(isect) {
+    return isect.face && isect.face.ngonHelper;
+  }).shift();
+};
+
 var num = function(a) {
   return parseFloat(Number(a).toFixed(6));
 };
 
-tools.groupFacesByNormal = function(triangles) {
-  var l = triangles.length, i, faces = {};
+THREE.Vector3.prototype.clean = function() {
+  this.set(
+    Vec2.clean(this.x),
+    Vec2.clean(this.y),
+    Vec2.clean(this.z)
+  );
+  return this;
+}
 
-  for (i=0; i<l; i++) {
-    var key = triangles[i].normal.toArray().map(num).join(',');
+THREE.Vector3.prototype.near = function(b, threshold) {
 
-    if (!faces[key]) {
-      faces[key] = [];
-    }
+  threshold = threshold || .000000001;
 
-    faces[key].push(i);
+  var x = Math.abs(Vec2.clean(this.x - b.x));
+  var y = Math.abs(Vec2.clean(this.y - b.y));
+  var z = Math.abs(Vec2.clean(this.z - b.z));
+
+  return (x < threshold && y < threshold && z < threshold);
+};
+
+tools.pointsCoplanar = function(a, b, c, d) {
+  var mat = new THREE.Matrix4(
+    a.x, a.y, a.z, 1,
+    b.x, b.y, b.z, 1,
+    c.x, c.y, c.z, 1,
+    d.x, d.y, d.z, 1
+  );
+
+  return Math.abs(mat.determinant()) < 0.1;
+};
+
+tools.facesAreCoplanar = function(a, b, c, a2, b2, c2) {
+  if (tools.pointsCoplanar(a, b, c, a2) && tools.pointsCoplanar(a2, b2, c2, a)) {
+    return true;
   }
-
-  var ret = [];
-  Object.keys(faces).forEach(function(key) {
-    var array = faces[key];
-    var inner = [];
-
-    for (var i=0; i<array.length; i++) {
-      inner.push(triangles[array[i]]);
-    }
-
-    ret.push(inner);
-  });
-
-  return ret;
 };
 
 tools.computeCoplanarFaces = function(mesh) {
-  var faceGeometry = [];
-  var geometry = mesh.geometry;
-  geometry.mergeVertices();
+  var geometry = mesh.geometry || mesh;
+  var faces = geometry.faces;
+  var verts = geometry.vertices;
+  var i, j;
 
-  var groups = tools.groupFacesByNormal(geometry.faces);
-  // TODO: make this work with more than 2 faces per group
-  groups.forEach(function(group) {
+  // First, lets collect the normals.  We can assume that
+  // if the face normals don't match, then they are not
+  // going to be coplanar
 
-    // filter shared verts
-    var verts = [], seen = {};
-    group.forEach(function(face) {
-      !seen[face.a] && verts.push(geometry.vertices[face.a]);
-      !seen[face.b] && verts.push(geometry.vertices[face.b]);
-      !seen[face.c] && verts.push(geometry.vertices[face.c]);
+  var coplanar = [];
+  for (i=0; i<faces.length; i++) {
 
-      seen[face.a] = seen[face.b] = seen[face.c] = true;
-    });
+    var combined = false;
+    for (j=0; j<coplanar.length; j++) {
+      if (coplanar[j][0].normal.clean().equals(faces[i].normal.clean())) {
 
-    var mat;
-    if (verts.length > 3) {
-      mat = new THREE.Matrix4(
-        verts[0].x, verts[0].y, verts[0].z, 1,
-        verts[1].x, verts[1].y, verts[1].z, 1,
-        verts[2].x, verts[2].y, verts[2].z, 1,
-        verts[3].x, verts[3].y, verts[3].z, 1
-      );
-    } else {
-      mat = new THREE.Matrix4(
-        verts[0].x, verts[0].y, verts[0].z, 1,
-        verts[1].x, verts[1].y, verts[1].z, 1,
-        verts[2].x, verts[2].y, verts[2].z, 1,
-        verts[2].x, verts[2].y, verts[2].z, 1
-      );
+        // If the normals are matching then we have a candidate for
+        // a coplanar match
+
+        var res = tools.facesAreCoplanar(
+          verts[faces[i].a].clean(),
+          verts[faces[i].b].clean(),
+          verts[faces[i].c].clean(),
+          verts[coplanar[j][0].a].clean(),
+          verts[coplanar[j][0].b].clean(),
+          verts[coplanar[j][0].c].clean()
+        );
+
+        if (res) {
+          coplanar[j].push(faces[i]);
+          combined = true;
+          break;
+        }
+      }
     }
 
-    var det = mat.determinant()
-
-    if (true || Math.abs(det) < 0.0001) {
-      faceGeometry.push({
-        faces : group,  // TODO: there may be faces that get pruned above.
-        verts : verts
-      });
-    } else {
-      console.log('not coplanar :(', verts.length, det)
+    if (!combined) {
+      coplanar.push([faces[i]]);
     }
-  });
+  }
 
-  return faceGeometry;
+  return coplanar;
 };
 
-
 tools.computeNgonHelpers = function(sourceMesh) {
+
   var faceGeometries = tools.computeCoplanarFaces(sourceMesh);
+
   faceGeometries.forEach(function(obj) {
     var geometry = new THREE.Geometry();
-    obj.faces.forEach(function(face) {
+
+    var mesh = new THREE.Mesh(
+      geometry,
+      new THREE.MeshBasicMaterial({
+        color: 0x0E7DFF,
+        transparent: true,
+        opacity: .5,
+        shading: THREE.FlatShading
+      })
+    );
+
+    var map = {};
+
+    obj.forEach(function(face, idx) {
       var clone = face.clone();
 
       clone.a = geometry.vertices.length;
       geometry.vertices.push(sourceMesh.geometry.vertices[face.a].clone());
-      
+
       clone.b = geometry.vertices.length;
       geometry.vertices.push(sourceMesh.geometry.vertices[face.b].clone());
 
@@ -119,20 +151,14 @@ tools.computeNgonHelpers = function(sourceMesh) {
       geometry.vertices.push(sourceMesh.geometry.vertices[face.c].clone());
 
       geometry.faces.push(clone);
+
+      face.ngonHelper = mesh;
     });
 
-    var faces = obj.faces;
-    var array = obj.verts;
-
-    var mesh = new THREE.Mesh(
-      geometry,
-      new THREE.MeshBasicMaterial({
-        color: 0xC6BF7B,
-        transparent: true,
-        opacity: 1,
-        shading: THREE.FlatShading
-      })
-    );
+    geometry.mergeVertices();
+    geometry.computeVertexNormals();
+    geometry.computeFaceNormals();
+    geometry.computeCentroids();
 
     mesh.position.sub(THREE.GeometryUtils.center(mesh.geometry))
 
@@ -144,9 +170,5 @@ tools.computeNgonHelpers = function(sourceMesh) {
 
     sourceMesh.add(mesh);
     mesh.visible = false;
-
-    obj.faces.forEach(function(face) {
-      face.ngonHelper = mesh;
-    });
   });
 };
