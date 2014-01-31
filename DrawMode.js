@@ -7,6 +7,13 @@ function DrawMode(drawPlaneRoot, scene, camera) {
     new THREE.PlaneGeometry(100, 100),
     new THREE.MeshBasicMaterial({ color: 0x00ee00, transparent: true, opacity: .1 })
   );
+
+  // One time setup to ensure the draw plane is above
+  // the ngonHelper offset
+  for (var i = 0; i<this.plane.geometry.vertices.length; i++) {
+    this.plane.geometry.vertices[i].z = 0.011;
+  }
+
   this.plane.quaternion = this.camera.quaternion.clone();
   this.plane.overdraw = true;
   this.plane.doublesided = true;
