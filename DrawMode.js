@@ -71,7 +71,7 @@ DrawMode.prototype.deactivate = function() {
 };
 
 DrawMode.prototype.createShape = function(obj, hole) {
-  var points = obj.computeGeometry([]).map(function(point) {
+  var points = obj.computeGeometry([], hole).map(function(point) {
     return new THREE.Vector2(point.x, point.y);
   });
 
@@ -89,7 +89,7 @@ DrawMode.prototype.generateShapes = function(array) {
 
   for (var i = 0; i<array.length; i++) {
     var inner = array[i];
-    inner.shape = this.createShape(array[i]);
+
 
     for (var j = 0; j<raw.length; j++) {
       var outer = raw[j];
@@ -98,9 +98,16 @@ DrawMode.prototype.generateShapes = function(array) {
         if (!outer.isHole) {
           inner.isHole = true;
         }
+
+        inner.shape = this.createShape(array[i], inner.isHole);
+
         outer.shape.holes.push(inner.shape);
         break;
       }
+    }
+
+    if (!inner.shape) {
+      inner.shape = this.createShape(array[i], false);
     }
 
     raw.unshift(inner);
