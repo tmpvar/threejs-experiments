@@ -141,14 +141,16 @@ tools.computeNgonHelpers = function(sourceMesh) {
     obj.forEach(function(face, idx) {
       var clone = face.clone();
 
+      var zFighting = face.normal.clone().multiplyScalar(.01);
+
       clone.a = geometry.vertices.length;
-      geometry.vertices.push(sourceMesh.geometry.vertices[face.a].clone());
+      geometry.vertices.push(sourceMesh.geometry.vertices[face.a].clone().add(zFighting));
 
       clone.b = geometry.vertices.length;
-      geometry.vertices.push(sourceMesh.geometry.vertices[face.b].clone());
+      geometry.vertices.push(sourceMesh.geometry.vertices[face.b].clone().add(zFighting));
 
       clone.c = geometry.vertices.length;
-      geometry.vertices.push(sourceMesh.geometry.vertices[face.c].clone());
+      geometry.vertices.push(sourceMesh.geometry.vertices[face.c].clone().add(zFighting));
 
       geometry.faces.push(clone);
 
