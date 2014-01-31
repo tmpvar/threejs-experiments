@@ -90,7 +90,6 @@ DrawMode.prototype.generateShapes = function(array) {
   for (var i = 0; i<array.length; i++) {
     var inner = array[i];
 
-
     for (var j = 0; j<raw.length; j++) {
       var outer = raw[j];
       if (outer.contains(inner)) {
@@ -100,8 +99,8 @@ DrawMode.prototype.generateShapes = function(array) {
         }
 
         inner.shape = this.createShape(array[i], inner.isHole);
-
         outer.shape.holes.push(inner.shape);
+        raw.unshift(inner);
         break;
       }
     }
@@ -183,16 +182,20 @@ DrawMode.prototype.extrudeGeometry = function(shapes, amount, merge) {
 
 DrawMode.prototype.subtractGeometry = function(shapes, amount) {
   var obj = this.shapesToGeometry(shapes, amount);
+  obj.position.z -= amount;
 
   var remove = new ThreeBSP(obj);
   var target = new ThreeBSP(this.targetMesh);
 
-  var union_bsp = target.intersect(remove);
+  var bsp = target.subtract(remove);
 
-  var result = union_bsp.toMesh(this.targetMesh.material);
-  this.targetMesh.parent.add(result);
+  var mesh = bsp.toMesh(this.targetMesh.material);
+
+  this.targetMesh.parent.add(mesh);
   this.targetMesh.parent.remove(this.targetMesh);
-  return result;
+  this.targetMesh = mesh;
+
+  return this.targetMesh;
 }
 
 DrawMode.prototype.keydown = function(event) {
@@ -231,7 +234,7 @@ DrawMode.prototype.keydown = function(event) {
       var shapes = this.generateShapes(this.draw.renderables);
 
       // TODO: collect these from a modal
-      var amount = -100;
+      var amount = 100;
       var merge = true;
 
       var mesh = this.subtractGeometry(shapes, amount, merge);
