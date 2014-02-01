@@ -49,15 +49,16 @@ CutMode.prototype.createMesh = function(amount) {
   }
 
   //todo dispose
-  this.cutMesh = tools.shapesToGeometry(this.shapes, amount, this.material);
-
-  this.cutMesh.position.z -= amount;
+  this.cutMesh = tools.shapesToGeometry(this.shapes, Math.abs(amount), this.material);
+  if (amount > 0) {
+    this.cutMesh.position.z -= amount;
+  }
 
   tools.alignWithPlane(this.cutMesh, this.plane);
   this.mesh.parent.add(this.cutMesh);
 };
 
-CutMode.prototype.subtractMesh = function(obj, amount) {
+CutMode.prototype.subtractMesh = function(obj) {
 
   var remove = new ThreeBSP(obj);
   var target = new ThreeBSP(this.mesh);
@@ -84,11 +85,7 @@ CutMode.prototype.keydown = function(e) {
     break;
 
     case 13: // return
-      // TODO: collect these from a modal
-      var amount = -100;
-      var merge = true;
-
-      var mesh = this.subtractMesh(this.cutMesh, amount, merge);
+      var mesh = this.subtractMesh(this.cutMesh);
 
       this.plane.parent.remove(this.plane);
       tools.computeNgonHelpers(mesh);
