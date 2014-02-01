@@ -70,29 +70,18 @@ DrawMode.prototype.deactivate = function() {
   this.drawPlaneRoot.remove(this.plane);
 };
 
-DrawMode.prototype.shapesToGeometry = function(shapes, amount) {
-  // Extrude the geometry without bevel, by the specified amount
-  var geometry = new THREE.ExtrudeGeometry(shapes, {
-    amount: amount,
-    bevelEnabled: false
+DrawMode.prototype.createShape = function(obj, hole) {
+  var points = obj.computeGeometry([], hole).map(function(point) {
+    return new THREE.Vector2(point.x, point.y);
   });
 
-  var obj = new THREE.Mesh(
-    geometry,
-    new THREE.MeshLambertMaterial({
-      color: 0xFFFFFF,
-      shading: THREE.FlatShading
-    })
-  );
-
-  this.alignWithPlane(obj);
-
-  return obj;
-}
-
+  return new THREE.Shape(points);
+};
 
 DrawMode.prototype.extrudeGeometry = function(shapes, amount, merge) {
-  var obj = this.shapesToGeometry(shapes, amount);
+  var obj = tools.shapesToGeometry(shapes, amount);
+
+  tools.alignWithPlane(obj, this.plane);
 
   if (merge) {
 
@@ -113,7 +102,9 @@ DrawMode.prototype.extrudeGeometry = function(shapes, amount, merge) {
 
 DrawMode.prototype.subtractGeometry = function(shapes, amount) {
 
-  var obj = this.shapesToGeometry(shapes, amount);
+  var obj = tools.shapesToGeometry(shapes, amount);
+
+  tools.alignWithPlane(obj, this.plane);
 
   var remove = new ThreeBSP(obj);
   var target = new ThreeBSP(this.targetMesh);
@@ -143,7 +134,7 @@ DrawMode.prototype.keydown = function(event) {
 
       // TODO: check for self-intersections
 
-      var shapes = this.generateShapes(this.draw.renderables);
+      var shapes = tools.generateShapes(this.draw.renderables);
 
       // TODO: collect these from a modal
       var amount = 100;
@@ -162,7 +153,7 @@ DrawMode.prototype.keydown = function(event) {
 
       // TODO: check for self-intersections
 
-      var shapes = this.generateShapes(this.draw.renderables);
+      var shapes = tools.generateShapes(this.draw.renderables);
 
       // TODO: collect these from a modal
       var amount = -100;

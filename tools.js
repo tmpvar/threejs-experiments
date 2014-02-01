@@ -119,6 +119,25 @@ tools.computeCoplanarFaces = function(mesh) {
   return coplanar;
 };
 
+
+tools.shapesToGeometry = function(shapes, amount) {
+  // Extrude the geometry without bevel, by the specified amount
+  var geometry = new THREE.ExtrudeGeometry(shapes, {
+    amount: amount,
+    bevelEnabled: false
+  });
+
+  var obj = new THREE.Mesh(
+    geometry,
+    new THREE.MeshLambertMaterial({
+      color: 0xFFFFFF,
+      shading: THREE.FlatShading
+    })
+  );
+
+  return obj;
+}
+
 tools.computeNgonHelpers = function(sourceMesh) {
 
   var faceGeometries = tools.computeCoplanarFaces(sourceMesh);
@@ -174,3 +193,71 @@ tools.computeNgonHelpers = function(sourceMesh) {
     mesh.visible = false;
   });
 };
+
+tools.createShape = function(obj, hole) {
+  var points = obj.computeGeometry([], hole).map(function(point) {
+    return new THREE.Vector2(point.x, point.y);
+  });
+
+  return new THREE.Shape(points);
+};
+
+tools.generateShapes = function(array) {
+  array = array.concat();
+
+  array.sort(function(a, b) {
+    return (Math.abs(a.area()) > Math.abs(b.area())) ? -1 : 1;
+  });
+
+  var raw = new Array();
+
+  for (var i = 0; i<array.length; i++) {
+    var inner = array[i];
+
+    for (var j = 0; j<raw.length; j++) {
+      var outer = raw[j];
+      if (outer.contains(inner)) {
+
+        if (!outer.isHole) {
+          inner.isHole = true;
+        }
+
+        inner.shape = tools.createShape(array[i], inner.isHole);
+        outer.shape.holes.push(inner.shape);
+        raw.unshift(inner);
+        break;
+      }
+    }
+
+    if (!inner.shape) {
+      inner.shape = tools.createShape(array[i], false);
+    }
+
+    raw.unshift(inner);
+  }
+
+  return raw.filter(function(a) {
+            return !a.isHole;
+          }).map(function(a) {
+            return a.shape;
+          });
+};
+
+tools.alignWithPlane = function(obj, plane) {
+  var rot = new THREE.Matrix4().extractRotation(plane.matrixWorld)
+
+  // This will move the object's position so that the edge of the
+  // extruded mesh touches the drawing plane
+  obj.position.applyMatrix4(plane.matrixWorld);
+
+  // rotate the object housing the extruded mesh
+  // to match the drawing plane's normal
+  obj.geometry.applyMatrix(rot);
+
+  obj.geometry.castShadow = true;
+  obj.geometry.receiveShadow = true;
+  obj.geometry.computeCentroids();
+  obj.geometry.computeFaceNormals();
+  obj.geometry.computeVertexNormals();
+};
+
