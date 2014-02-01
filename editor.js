@@ -18,7 +18,7 @@ var userModeManager = new ModeManager();
 });
 
 updateSteps.push(function() {
-  
+
   var n = camera.position.clone().normalize().multiplyScalar(50);
 
   camera2.position.set( n.x, n.y, n.z );
@@ -52,7 +52,7 @@ updateSteps.push(rootModeManager);
 var plane;
 
 var cube = new THREE.Mesh( new THREE.CubeGeometry( 20, 20, 5 ), new THREE.MeshLambertMaterial({
-  color: 0xcccccc,
+  color: 0xf0f0f0,
   shading: THREE.FlatShading
 }));
 
@@ -66,8 +66,12 @@ sceneRoot.add( cube );
 tools.computeNgonHelpers(cube);
 
 var cube2 = new THREE.Mesh( new THREE.CubeGeometry( 100, 100, 5 ), new THREE.MeshLambertMaterial({
-  color: 0xcccccc,
-  shading: THREE.FlatShading,
+  color: 0xffffff,
+  emissive: 0x020202,
+  ambient: 0xffffff,
+  shading: THREE.SmoothShading,
+  transparent: true,
+  opacity: 1
 }));
 
 
@@ -103,7 +107,7 @@ function selectObject(object) {
     selectedObject = object;
     if (selectedObject && selectedObject.material.emissive) {
       selectedObject.oldHex = selectedObject.material.emissive.getHex();
-      selectedObject.material.emissive.setHex(selectedObject.oldHex+0x111100);
+      selectedObject.material.emissive.setHex(selectedObject.oldHex+0x111111);
     }
   }
 }

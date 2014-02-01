@@ -131,7 +131,7 @@ tools.computeNgonHelpers = function(sourceMesh) {
       new THREE.MeshBasicMaterial({
         color: 0x0E7DFF,
         transparent: true,
-        opacity: .5,
+        opacity: .7,
         shading: THREE.FlatShading
       })
     );
