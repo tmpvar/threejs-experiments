@@ -1,5 +1,5 @@
-var rootModeManager = new ModeManager();
-var userModeManager = new ModeManager();
+var rootModeManager = new ModeManager(true);
+var userModeManager = new ModeManager(true);
 
 [
   'mousedown', 'mousemove', 'mouseup',
@@ -33,15 +33,25 @@ rootModeManager.add('user', userModeManager);
 rootModeManager.add('helper', new HelperMode(sceneRoot, camera), true);
 rootModeManager.mode('user');
 
-var controls = new THREE.OrbitControls(camera, document.body );
+var controls = new THREE.OrbitControls(userModeManager, camera, document.body );
 userModeManager.add('navigation', controls, true);
 
-var drawMode = new DrawMode(sceneRoot, sceneRoot, camera);
-
+// 2D Drawing
+var drawMode = new DrawMode(userModeManager, sceneRoot, sceneRoot, camera);
 updateSteps.push(drawMode);
 
 userModeManager.add('draw', drawMode);
 userModeManager.add('drawplane', new DrawPlaneMode(userModeManager, sceneRoot, camera, projector));
+
+// CSG
+var cutMode = new CutMode(userModeManager);
+updateSteps.push(cutMode);
+userModeManager.add('cut', cutMode);
+
+var extrudeMode = new ExtrudeMode(userModeManager);
+updateSteps.push(extrudeMode);
+userModeManager.add('extrude', extrudeMode);
+
 
 userModeManager.mode('navigation');
 

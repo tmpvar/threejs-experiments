@@ -1,7 +1,8 @@
-function DrawMode(drawPlaneRoot, scene, camera) {
+function DrawMode(modeManager, drawPlaneRoot, scene, camera) {
   this.drawPlaneRoot = drawPlaneRoot
   this.scene = scene;
   this.camera = camera;
+  this.modeManager = modeManager;
 
   this.plane = new THREE.Mesh(
     new THREE.PlaneGeometry(100, 100),
@@ -78,48 +79,6 @@ DrawMode.prototype.createShape = function(obj, hole) {
   return new THREE.Shape(points);
 };
 
-DrawMode.prototype.extrudeGeometry = function(shapes, amount, merge) {
-  var obj = tools.shapesToGeometry(shapes, amount);
-
-  tools.alignWithPlane(obj, this.plane);
-
-  if (merge) {
-
-    var extension = new ThreeBSP(obj);
-    var target = new ThreeBSP(this.targetMesh);
-
-    var union_bsp = target.union(extension);
-
-    obj = union_bsp.toMesh(this.targetMesh.material);
-    this.targetMesh.parent.add(obj);
-    this.targetMesh.parent.remove(this.targetMesh);
-  } else {
-    this.scene.add(obj);
-  }
-
-  return obj;
-}
-
-DrawMode.prototype.subtractGeometry = function(shapes, amount) {
-
-  var obj = tools.shapesToGeometry(shapes, amount);
-
-  tools.alignWithPlane(obj, this.plane);
-
-  var remove = new ThreeBSP(obj);
-  var target = new ThreeBSP(this.targetMesh);
-
-  var bsp = target.intersect(remove);
-
-  var mesh = bsp.toMesh(this.targetMesh.material);
-
-  this.targetMesh.parent.add(mesh);
-  this.targetMesh.parent.remove(this.targetMesh);
-  this.targetMesh = mesh;
-
-  return this.targetMesh;
-}
-
 DrawMode.prototype.keydown = function(event) {
 
   if (this.draw.handle('keydown', event)) {
@@ -130,41 +89,30 @@ DrawMode.prototype.keydown = function(event) {
 
     case 69: // [e]xtrude
 
+      // TODO: check for self-intersections
       this.draw.modeManager.exit();
 
-      // TODO: check for self-intersections
-
-      var shapes = tools.generateShapes(this.draw.renderables);
-
-      // TODO: collect these from a modal
-      var amount = 100;
-      var merge = true;
-
-      var mesh = this.extrudeGeometry(shapes, amount, merge);
-
-      tools.computeNgonHelpers(mesh);
+      this.modeManager.mode('extrude', {
+        plane: this.plane,
+        mesh: this.targetMesh,
+        draw: this.draw
+      });
 
       return true;
     break;
 
     case 83: // [s]ubtract
-
       this.draw.modeManager.exit();
 
-      // TODO: check for self-intersections
-
-      var shapes = tools.generateShapes(this.draw.renderables);
-
-      // TODO: collect these from a modal
-      var amount = -100;
-      var merge = true;
-
-      var mesh = this.subtractGeometry(shapes, amount, merge);
-
-      tools.computeNgonHelpers(mesh);
+      this.modeManager.mode('cut', {
+        plane: this.plane,
+        mesh: this.targetMesh,
+        draw: this.draw
+      });
 
       return true;
     break;
+
   }
 }
 
