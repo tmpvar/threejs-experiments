@@ -78,9 +78,9 @@ sceneRoot.add( cube );
 tools.computeNgonHelpers(cube);
 
 var cube2 = new THREE.Mesh( new THREE.CubeGeometry( 100, 100, 5 ), new THREE.MeshLambertMaterial({
-  color: 0xffffff,
+  color: 0xcccccc,
   emissive: 0x020202,
-  ambient: 0xffffff,
+  ambient: 0x111111,
   shading: THREE.SmoothShading,
   transparent: true,
   opacity: 1
