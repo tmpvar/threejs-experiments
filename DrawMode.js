@@ -181,13 +181,13 @@ DrawMode.prototype.extrudeGeometry = function(shapes, amount, merge) {
 }
 
 DrawMode.prototype.subtractGeometry = function(shapes, amount) {
+
   var obj = this.shapesToGeometry(shapes, amount);
-  obj.position.z -= amount;
 
   var remove = new ThreeBSP(obj);
   var target = new ThreeBSP(this.targetMesh);
 
-  var bsp = target.subtract(remove);
+  var bsp = target.intersect(remove);
 
   var mesh = bsp.toMesh(this.targetMesh.material);
 
@@ -234,7 +234,7 @@ DrawMode.prototype.keydown = function(event) {
       var shapes = this.generateShapes(this.draw.renderables);
 
       // TODO: collect these from a modal
-      var amount = 100;
+      var amount = -100;
       var merge = true;
 
       var mesh = this.subtractGeometry(shapes, amount, merge);
