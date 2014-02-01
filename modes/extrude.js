@@ -43,7 +43,12 @@ ExtrudeMode.prototype.createMesh = function(amount) {
   }
 
   //todo dispose
-  this.extrudeMesh = tools.shapesToGeometry(this.shapes, amount, this.material);
+  this.extrudeMesh = tools.shapesToGeometry(this.shapes, Math.abs(amount), this.material);
+
+  if (amount < 0) {
+    this.extrudeMesh.position.z += amount;
+  }
+
 
   tools.alignWithPlane(this.extrudeMesh, this.plane);
   this.mesh.parent.add(this.extrudeMesh);
