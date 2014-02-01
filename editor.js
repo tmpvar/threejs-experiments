@@ -33,7 +33,7 @@ rootModeManager.add('user', userModeManager);
 rootModeManager.add('helper', new HelperMode(sceneRoot, camera), true);
 rootModeManager.mode('user');
 
-var controls = new THREE.OrbitControls(userModeManager, camera, document.body );
+var controls = new THREE.OrbitControls(camera, document.body );
 userModeManager.add('navigation', controls, true);
 
 // 2D Drawing
@@ -63,7 +63,9 @@ var plane;
 
 var cube = new THREE.Mesh( new THREE.CubeGeometry( 20, 20, 5 ), new THREE.MeshLambertMaterial({
   color: 0xf0f0f0,
-  shading: THREE.FlatShading
+  shading: THREE.FlatShading,
+  transparent: true,
+  opacity: 1
 }));
 
 
@@ -92,20 +94,6 @@ sceneRoot.add( cube2 );
 
 tools.computeNgonHelpers(cube2);
 
-window.addEventListener('keydown', function(event) {
-  console.log(event.keyCode);
-
-  switch (event.keyCode) {
-    case 27:
-      selectObject(null);
-    break;
-
-    case 68: // d
-      userModeManager.mode('drawplane');
-    break;
-  }
-});
-
 var selectedObject = null;
 
 function selectObject(object) {
@@ -121,4 +109,5 @@ function selectObject(object) {
     }
   }
 }
+
 
