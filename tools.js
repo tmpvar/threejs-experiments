@@ -1,5 +1,10 @@
 var tools = window.tools = {};
 
+var qel = function(selector) {
+  return document.querySelector(selector);
+};
+
+
 tools.mouseIntersections = function(root, camera, vec2) {
   var vector = new THREE.Vector3( ( vec2.x / window.innerWidth ) * 2 - 1, - ( vec2.y / window.innerHeight ) * 2 + 1, .5 );
   projector.unprojectVector( vector, camera );
@@ -120,7 +125,7 @@ tools.computeCoplanarFaces = function(mesh) {
 };
 
 
-tools.shapesToGeometry = function(shapes, amount) {
+tools.shapesToGeometry = function(shapes, amount, material) {
   // Extrude the geometry without bevel, by the specified amount
   var geometry = new THREE.ExtrudeGeometry(shapes, {
     amount: amount,
@@ -129,9 +134,11 @@ tools.shapesToGeometry = function(shapes, amount) {
 
   var obj = new THREE.Mesh(
     geometry,
-    new THREE.MeshLambertMaterial({
+    material || new THREE.MeshLambertMaterial({
       color: 0xFFFFFF,
-      shading: THREE.FlatShading
+      shading: THREE.FlatShading,
+      transparent: true,
+      opacity: 1
     })
   );
 
@@ -148,7 +155,7 @@ tools.computeNgonHelpers = function(sourceMesh) {
     var mesh = new THREE.Mesh(
       geometry,
       new THREE.MeshBasicMaterial({
-        color: 0x0E7DFF,
+        color: 0x0086FF,
         transparent: true,
         opacity: .7,
         shading: THREE.FlatShading
@@ -259,5 +266,12 @@ tools.alignWithPlane = function(obj, plane) {
   obj.geometry.computeCentroids();
   obj.geometry.computeFaceNormals();
   obj.geometry.computeVertexNormals();
+};
+
+
+tools.cdata = function(fn) {
+  return fn.toString().
+      replace(/^[^\/]+\/\*!?/, '').
+      replace(/\*\/[^\/]+$/, '');
 };
 
