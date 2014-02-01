@@ -7,7 +7,6 @@ function CutMode(modeManager) {
 
   this.ui.bind('amount', this.createMesh.bind(this));
 
-
   this.material = new THREE.MeshLambertMaterial({
     color: 0xFF9D40,
     shading: THREE.FlatShading,
@@ -21,6 +20,8 @@ CutMode.prototype.activate = function(oldMode, options) {
   this.plane = options.plane;
   this.mesh = options.mesh;
   this.draw = options.draw;
+
+  this.shapes = tools.generateShapes(this.draw.renderables);
 
   options.mesh.material.opacity = .5;
 
@@ -43,13 +44,12 @@ CutMode.prototype.deactivate = function() {
 CutMode.prototype.createMesh = function(amount) {
   var amount = parseFloat(this.ui.field('amount').val());
 
-  var shapes = tools.generateShapes(this.draw.renderables);
   if (this.cutMesh) {
     this.mesh.parent.remove(this.cutMesh);
   }
 
   //todo dispose
-  this.cutMesh = tools.shapesToGeometry(shapes, amount, this.material);
+  this.cutMesh = tools.shapesToGeometry(this.shapes, amount, this.material);
 
   this.cutMesh.position.z -= amount;
 
@@ -78,8 +78,8 @@ CutMode.prototype.keydown = function(e) {
 
   switch (e.keyCode) {
     case 27: // escape
-      this.modeManager.exit();
-
+      this.cutMesh.parent.remove(this.cutMesh);
+      this.modeManager.mode('draw');
       return true;
     break;
 
@@ -90,6 +90,7 @@ CutMode.prototype.keydown = function(e) {
 
       var mesh = this.subtractMesh(this.cutMesh, amount, merge);
 
+      this.plane.parent.remove(this.plane);
       tools.computeNgonHelpers(mesh);
 
       this.modeManager.exit();

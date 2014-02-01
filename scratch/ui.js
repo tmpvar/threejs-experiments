@@ -26,6 +26,16 @@ UI.prototype.field = function(name) {
   return this._fields[name] || null;
 }
 
+UI.prototype.handleSelect = function(ev) {
+  console.log('select', ev);
+  if (ev.select) {
+    console.log('selecting?')
+    ev.select();
+  } else if (ev.target && ev.target.select) {
+    ev.target.select();
+  }
+};
+
 UI.prototype.createBinding = function(parent, current, name, value) {
 
   var events = [];
@@ -45,9 +55,19 @@ UI.prototype.createBinding = function(parent, current, name, value) {
       this._fields[name].extractFormValueFromEvent
     );
   }
+
+  current.addEventListener('focus', this.handleSelect);
+
 };
 
 UI.prototype.render = function(target) {
   target.innerHTML = '';
   target.appendChild(this.frag);
-}
+
+  var el = target.querySelector('input');
+  if (el) {
+    el.focus();
+    this.handleSelect(el);
+  }
+
+};

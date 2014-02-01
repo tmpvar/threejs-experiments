@@ -23,52 +23,56 @@ function DrawMode(modeManager, drawPlaneRoot, scene, camera) {
 }
 
 DrawMode.prototype.activate = function(lastMode, options) {
-  var draw = this.draw = new Draw();
-  draw.canvasDimensions(1000, 1000);
-  draw.scale = 10;
-  var texture = this.texture = new THREE.Texture(draw.canvas);
-  texture.needsUpdate = true;
-  texture.magFilter = THREE.NearestFilter;
-  texture.minFilter = THREE.LinearMipMapLinearFilter;
+  if (options) {
+    var draw = this.draw = new Draw();
+    draw.modeManager.debug = true;
 
-  var material = new THREE.MeshBasicMaterial({
-    map : texture,
-    transparent: true
-  });
+    draw.canvasDimensions(1000, 1000);
+    draw.scale = 10;
+    var texture = this.texture = new THREE.Texture(draw.canvas);
+    texture.needsUpdate = true;
+    texture.magFilter = THREE.NearestFilter;
+    texture.minFilter = THREE.LinearMipMapLinearFilter;
 
-  this.plane.material = material;
+    var material = new THREE.MeshBasicMaterial({
+      map : texture,
+      transparent: true
+    });
 
-  this.lastMode = lastMode;
+    this.plane.material = material;
 
-  // Keep the default mode from catching mouseup which causes
-  // issues.
-  this.handledMouseDown = true;
+    this.lastMode = lastMode;
 
-  if (options.intersection) {
-    var isect = options.intersection;
+    // Keep the default mode from catching mouseup which causes
+    // issues.
+    this.handledMouseDown = true;
 
-    var coplanar;
+    if (options.intersection) {
+      var isect = options.intersection;
 
-    this.targetMesh = null;
-    if (typeof isect.faceIndex !== 'undefined') {
-      var face = isect.object.geometry.faces[isect.faceIndex];
-      this.targetMesh = isect.object;
-      coplanar = face.ngonHelper.position.clone().add(face.ngonHelper.parent.position);
-      this.plane.position.copy(coplanar);
+      var coplanar;
+
+      this.targetMesh = null;
+      if (typeof isect.faceIndex !== 'undefined') {
+        var face = isect.object.geometry.faces[isect.faceIndex];
+        this.targetMesh = isect.object;
+        coplanar = face.ngonHelper.position.clone().add(face.ngonHelper.parent.position);
+        this.plane.position.copy(coplanar);
+      } else {
+        coplanar = isect.object.geometry.vertices[isect.face.a].clone().add(isect.object.position);
+      }
+
+      this.plane.lookAt(coplanar.add(isect.face.normal));
     } else {
-      coplanar = isect.object.geometry.vertices[isect.face.a].clone().add(isect.object.position);
+      this.plane.quaternion = this.camera.quaternion.clone();
     }
 
-    this.plane.lookAt(coplanar.add(isect.face.normal));
-  } else {
-    this.plane.quaternion = this.camera.quaternion.clone();
+    this.drawPlaneRoot.add(this.plane);
   }
-
-  this.drawPlaneRoot.add(this.plane);
 };
 
 DrawMode.prototype.deactivate = function() {
-  this.drawPlaneRoot.remove(this.plane);
+
 };
 
 DrawMode.prototype.createShape = function(obj, hole) {
@@ -82,10 +86,17 @@ DrawMode.prototype.createShape = function(obj, hole) {
 DrawMode.prototype.keydown = function(event) {
 
   if (this.draw.handle('keydown', event)) {
+    console.log('draw handled', event.keyCode);
     return true;
   }
 
   switch (event.keyCode) {
+
+    case 27: // escape
+      this.modeManager.exit();
+      this.drawPlaneRoot.remove(this.plane);
+      return true;
+    break
 
     case 69: // [e]xtrude
 
@@ -112,7 +123,6 @@ DrawMode.prototype.keydown = function(event) {
 
       return true;
     break;
-
   }
 }
 
