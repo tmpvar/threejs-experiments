@@ -38,7 +38,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 
   this.zoomDampingFactor = 0.2;
 
-  this.momentumDampingFactor = 0.8;
+  this.momentumDampingFactor = 0.06;
   this.momentumScalingFactor = 0.005;
 
   this.keys = { LEFT: 37, UP: 38, RIGHT: 39, BOTTOM: 40 };
@@ -161,7 +161,17 @@ THREE.OrbitControls = function ( object, domElement ) {
 
   };
 
-  this.update = function () {
+  this.update = function (deltaTime) {
+
+    if (this.targetPosition && !this.targetPosition.equals(camera.position)) {
+      camera.position.lerp(this.targetPosition, deltaTime/500);
+      camera.lookAt(this.focusPoint);
+    }
+
+    if (this.targetCenter && !this.targetCenter.equals(this.center)) {
+      this.center.lerp(this.targetCenter, deltaTime/200);
+    }
+
     this.zoomCamera();
     this.momentum();
     // console.log(scale)
@@ -242,20 +252,12 @@ THREE.OrbitControls = function ( object, domElement ) {
 
     event.preventDefault();
 
+    this.targetPosition = null;
+    this.targetCenter = null;
+
+
     if ( event.button === 0 ) {
-
-      var isect = tools.mouseNgonHelperIntersection(
-        sceneRoot,
-        camera,
-        new THREE.Vector2(event.clientX, event.clientY)
-      );
-
-      if (isect) {
-        controls.center.copy(isect.object.position);
-        selectObject(isect.object);
-      }
-
-
+      this.rotated = 0;
       state = STATE.ROTATE;
 
       rotateStart.set( event.clientX, event.clientY );
@@ -282,7 +284,7 @@ THREE.OrbitControls = function ( object, domElement ) {
     event.preventDefault();
 
     if ( state === STATE.ROTATE ) {
-
+      this.rotated = 1;
       rotateEnd.set( event.clientX, event.clientY );
       rotateDelta.subVectors( rotateEnd, rotateStart );
 
@@ -337,6 +339,28 @@ THREE.OrbitControls = function ( object, domElement ) {
     if ( scope.enabled === false ) return;
     if ( scope.userRotate === false ) return;
 
+    if (!this.rotated) {
+      var isect = tools.mouseNgonHelperIntersection(
+        sceneRoot,
+        camera,
+        new THREE.Vector2(event.clientX, event.clientY)
+      );
+
+      if (isect) {
+//        var maintainDistance = camera.position.distanceTo(this.focusPoint || isect.face.ngonHelper.position)
+        var radius = isect.face.ngonHelper.geometry.boundingSphere.radius;
+
+        var vFOV = camera.fov * Math.PI / 180;        // convert vertical fov to radians
+        var maintainDistance = 2.5 * Math.tan( vFOV / 2 ) * radius;
+
+        this.focusPoint = isect.face.ngonHelper.position.clone();
+
+        this.targetPosition = isect.face.normal.clone().multiplyScalar(maintainDistance).add(isect.face.ngonHelper.position).add(isect.object.position);
+        this.targetCenter = isect.object.position.clone().add(isect.face.ngonHelper.position);
+        //controls.center.copy(isect.object.position.clone().add(isect.face.ngonHelper.position));
+      }
+    }
+
     state = STATE.NONE;
   }
 
@@ -348,6 +372,9 @@ THREE.OrbitControls = function ( object, domElement ) {
     event.stopPropagation();
 
     var delta = 0;
+
+    this.targetPosition = null;
+    this.targetCenter = null;
 
     if ( event.wheelDelta ) { // WebKit / Opera / Explorer 9
 

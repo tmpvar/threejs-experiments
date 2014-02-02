@@ -34,6 +34,8 @@ rootModeManager.add('helper', new HelperMode(sceneRoot, camera), true);
 rootModeManager.mode('user');
 
 var controls = new THREE.OrbitControls(camera, document.body );
+updateSteps.push(controls);
+
 userModeManager.add('navigation', controls, true);
 
 // 2D Drawing
