@@ -27,12 +27,14 @@ DrawMode.prototype.activate = function(lastMode, options) {
     var draw = this.draw = new Draw();
     draw.modeManager.debug = true;
 
-    draw.canvasDimensions(1000, 1000);
-    draw.scale = 10;
+    draw.canvasDimensions(512, 512);
+    draw.scale = 5.12;
     var texture = this.texture = new THREE.Texture(draw.canvas);
     texture.needsUpdate = true;
+    texture.anisotropy = renderer.getMaxAnisotropy();
     texture.magFilter = THREE.NearestFilter;
-    texture.minFilter = THREE.LinearMipMapLinearFilter;
+    texture.minFilter = THREE.NearestFilter;
+    texture.blending = THREE.NoBlending;
 
     var material = new THREE.MeshBasicMaterial({
       map : texture,
