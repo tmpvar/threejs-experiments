@@ -209,7 +209,7 @@ THREE.SSAOShader = {
 			"float pw;",
 			"float ph;",
 
-			"float ao;",
+			"float ao = 0.0;",
 
 			"float dz = 1.0 / float( samples );",
 			"float z = 1.0 - dz / 2.0;",
