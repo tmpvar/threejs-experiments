@@ -36,7 +36,7 @@ window.addEventListener( 'resize', function() {
 
 renderer.setClearColor(0x222225);
 
-// renderer
+// renderer used for ui axis in the lower left corner
 var renderer2 = new THREE.CanvasRenderer();
 renderer2.setSize( 100, 100 );
 document.body.appendChild( renderer2.domElement );
@@ -61,6 +61,30 @@ scene.add(axes)
 scene2.add(axes2);
 
 
+// depth
+
+var depthShader = THREE.ShaderLib[ "depthRGBA" ];
+var depthUniforms = THREE.UniformsUtils.clone( depthShader.uniforms );
+
+depthMaterial = new THREE.ShaderMaterial( { fragmentShader: depthShader.fragmentShader, vertexShader: depthShader.vertexShader, uniforms: depthUniforms } );
+depthMaterial.blending = THREE.NoBlending;
+
+// postprocessing
+
+composer = new THREE.EffectComposer( renderer );
+composer.addPass( new THREE.RenderPass( scene, camera ) );
+
+depthTarget = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, format: THREE.RGBAFormat } );
+
+var effect = new THREE.ShaderPass( THREE.SSAOShader );
+effect.uniforms[ 'tDepth' ].value = depthTarget;
+effect.uniforms[ 'size' ].value.set( window.innerWidth, window.innerHeight );
+effect.uniforms[ 'cameraNear' ].value = camera.near;
+effect.uniforms[ 'cameraFar' ].value = camera.far;
+effect.renderToScreen = true;
+composer.addPass( effect );
+
+
 
 var last = 0;
 var tick = function(t) {
@@ -69,8 +93,11 @@ var tick = function(t) {
   renderer.renderPluginsPre = [];
   renderer.renderPluginsPre = [];
 
-  renderer.render( scene, camera );
-
+  scene.overrideMaterial = depthMaterial;
+  renderer.render( scene, camera, depthTarget );
+  scene.overrideMaterial = null;
+  
+  composer.render();
   for (var i = 0; i<updateSteps.length; i++) {
     if (typeof updateSteps[i].update === 'function') {
       updateSteps[i].update(d);
