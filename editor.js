@@ -17,14 +17,14 @@ var userModeManager = new ModeManager(true);
 
 });
 
-updateSteps.push(function() {
+// updateSteps.push(function() {
 
-  var n = camera.position.clone().normalize().multiplyScalar(50);
+//   var n = camera.position.clone().normalize().multiplyScalar(50);
 
-  camera2.position.set( n.x, n.y, n.z );
-  camera2.lookAt(scene2.position);
-  renderer2.render(scene2, camera2)
-});
+//   camera2.position.set( n.x, n.y, n.z );
+//   camera2.lookAt(scene2.position);
+//   renderer2.render(scene2, camera2)
+// });
 
 var sceneRoot = new THREE.Object3D();
 scene.add(sceneRoot);
@@ -63,34 +63,23 @@ updateSteps.push(rootModeManager);
 
 var plane;
 
-var cube = new THREE.Mesh( new THREE.CubeGeometry( 20, 20, 5 ), new THREE.MeshLambertMaterial({
-  color: 0xf0f0f0,
-  shading: THREE.FlatShading,
-  transparent: true,
-  opacity: 1
-}));
+var baseMaterial = new THREE.MeshPhongMaterial({
+  color: 0xffffff,
+  emissive: 0x020202,
+  ambient: 0x111111,
+  shading: THREE.SmoothShading,
+  shinyness: 100
+});
 
+var cube = new THREE.Mesh( new THREE.CubeGeometry( 20, 20, 5 ), baseMaterial);
 
-
-cube.geometry.castShadow = true;
-cube.geometry.receiveShadow = true;
 cube.position.y = 100;
 sceneRoot.add( cube );
 
 tools.computeNgonHelpers(cube);
 
-var cube2 = new THREE.Mesh( new THREE.CubeGeometry( 100, 100, 5 ), new THREE.MeshLambertMaterial({
-  color: 0xcccccc,
-  emissive: 0x020202,
-  ambient: 0x111111,
-  shading: THREE.SmoothShading,
-  transparent: true,
-  opacity: 1
-}));
+var cube2 = new THREE.Mesh( new THREE.CubeGeometry( 100, 100, 5 ), baseMaterial);
 
-
-cube2.geometry.castShadow = true;
-cube2.geometry.receiveShadow = true;
 cube2.position.x = 100;
 sceneRoot.add( cube2 );
 
