@@ -16,7 +16,7 @@ scene.add(camera);
 projector = new THREE.Projector();
 renderer = new THREE.WebGLRenderer({
   antialias : true,
-  stencil: true,
+  stencil: false,
   preserveDrawingBuffer: true
 });
 
@@ -26,7 +26,7 @@ scene.add( light );
 
 
 container.appendChild( renderer.domElement );
-
+renderer.setSize( window.innerWidth, window.innerHeight );
 window.addEventListener( 'resize', function() {
   renderer.setSize( window.innerWidth, window.innerHeight );
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -34,7 +34,7 @@ window.addEventListener( 'resize', function() {
 }, false );
 
 
-renderer.setClearColor(0x222233);
+renderer.setClearColor(0x222225);
 
 // renderer
 var renderer2 = new THREE.CanvasRenderer();
@@ -66,7 +66,9 @@ var last = 0;
 var tick = function(t) {
   var d = t-last;
   last = t;
-  renderer.setSize( window.innerWidth, window.innerHeight );
+  renderer.renderPluginsPre = [];
+  renderer.renderPluginsPre = [];
+
   renderer.render( scene, camera );
 
   for (var i = 0; i<updateSteps.length; i++) {
