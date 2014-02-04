@@ -255,6 +255,12 @@ THREE.OrbitControls = function ( object, domElement ) {
     this.targetPosition = null;
     this.targetCenter = null;
 
+    this.isect = tools.mouseNgonHelperIntersection(
+      sceneRoot,
+      camera,
+      new THREE.Vector2(event.clientX, event.clientY)
+    );
+
 
     if ( event.button === 0 ) {
       this.rotated = 0;
@@ -284,6 +290,11 @@ THREE.OrbitControls = function ( object, domElement ) {
     event.preventDefault();
 
     if ( state === STATE.ROTATE ) {
+      if (this.isect) {
+        this.targetPosition = null;
+        this.targetCenter = this.isect.object.position.clone().add(this.isect.face.ngonHelper.position);
+      }
+
       this.rotated = 1;
       rotateEnd.set( event.clientX, event.clientY );
       rotateDelta.subVectors( rotateEnd, rotateStart );
@@ -339,13 +350,8 @@ THREE.OrbitControls = function ( object, domElement ) {
     if ( scope.enabled === false ) return;
     if ( scope.userRotate === false ) return;
 
-    if (!this.rotated) {
-      var isect = tools.mouseNgonHelperIntersection(
-        sceneRoot,
-        camera,
-        new THREE.Vector2(event.clientX, event.clientY)
-      );
-
+    if (!this.rotated && this.isect) {
+      var isect = this.isect;
       if (isect) {
 //        var maintainDistance = camera.position.distanceTo(this.focusPoint || isect.face.ngonHelper.position)
         var radius = isect.face.ngonHelper.geometry.boundingSphere.radius;
