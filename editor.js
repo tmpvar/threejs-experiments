@@ -17,14 +17,14 @@ var userModeManager = new ModeManager(true);
 
 });
 
-// updateSteps.push(function() {
+updateSteps.push(function() {
 
-//   var n = camera.position.clone().normalize().multiplyScalar(50);
+  var n = camera.position.clone().normalize().multiplyScalar(50);
 
-//   camera2.position.set( n.x, n.y, n.z );
-//   camera2.lookAt(scene2.position);
-//   renderer2.render(scene2, camera2)
-// });
+  camera2.position.set( n.x, n.y, n.z );
+  camera2.lookAt(scene2.position);
+  renderer2.render(scene2, camera2)
+});
 
 var sceneRoot = new THREE.Object3D();
 scene.add(sceneRoot);

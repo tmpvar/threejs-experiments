@@ -13,9 +13,10 @@ camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight
 camera.position.set( 0, 0, 100 );
 scene.add(camera);
 
+
 projector = new THREE.Projector();
 renderer = new THREE.WebGLRenderer({
-  antialias : true,
+  antialias : false,
   stencil: false,
   preserveDrawingBuffer: true
 });
@@ -36,6 +37,7 @@ window.addEventListener( 'resize', function() {
 
 renderer.setClearColor(0x222225);
 
+
 // renderer used for ui axis in the lower left corner
 var renderer2 = new THREE.CanvasRenderer();
 renderer2.setSize( 100, 100 );
@@ -45,20 +47,16 @@ document.body.appendChild( renderer2.domElement );
 renderer2.domElement.setAttribute('class', "axes");
 // scene
 scene2 = new THREE.Scene();
-
-
 camera2 = new THREE.PerspectiveCamera( 50, 1, 1, 1000 );
 camera2.up = camera.up; // important!
+camera2.position.set( 50, 50 , 200 );
+scene2.add(camera2);
 
-
-camera2.position.set( 50, 100 , 500 );
-
-scene2.add( camera2 );
+var axes2 = new THREE.AxisHelper(10);
+scene2.add(axes2);
 
 var axes = new THREE.AxisHelper(10);
-var axes2 = new THREE.AxisHelper(10);
 scene.add(axes)
-scene2.add(axes2);
 
 
 // depth
@@ -90,13 +88,13 @@ var last = 0;
 var tick = function(t) {
   var d = t-last;
   last = t;
-  renderer.renderPluginsPre = [];
-  renderer.renderPluginsPre = [];
+
+  renderer2.render(scene2, camera)
 
   scene.overrideMaterial = depthMaterial;
   renderer.render( scene, camera, depthTarget );
   scene.overrideMaterial = null;
-  
+
   composer.render();
   for (var i = 0; i<updateSteps.length; i++) {
     if (typeof updateSteps[i].update === 'function') {
