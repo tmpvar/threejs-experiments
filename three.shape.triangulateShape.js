@@ -42,9 +42,8 @@ THREE.Shape.Utils.triangulateShape = function( pts, holes ) {
       findIndexForPt(tr.GetPoint(0)),
       findIndexForPt(tr.GetPoint(1)),
       findIndexForPt(tr.GetPoint(2))
-        ]);
+    ]);
   }
-
 
   //  console.log(facesPts);
   //  console.log("triangles", triangles.length, triangles);
