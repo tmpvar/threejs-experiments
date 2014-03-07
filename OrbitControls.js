@@ -311,22 +311,6 @@ THREE.OrbitControls = function ( object, domElement ) {
 
       rotateStart.copy( rotateEnd );
       return true;
-    // }   else if ( state === STATE.ZOOM ) {
-
-    //   zoomEnd.set( event.clientX, event.clientY );
-    //   zoomDelta.subVectors( zoomEnd, zoomStart );
-
-    //   if ( zoomDelta.y > 0 ) {
-
-    //     scope.zoomIn();
-
-    //   } else {
-
-    //     scope.zoomOut();
-
-    //   }
-
-    //   zoomStart.copy( zoomEnd );
 
     } else if ( state === STATE.PAN ) {
 
@@ -425,9 +409,7 @@ THREE.OrbitControls = function ( object, domElement ) {
         userModeManager.mode('drawplane');
       break;
     }
-
   }
-
 };
 
 THREE.OrbitControls.prototype = Object.create( THREE.EventDispatcher.prototype );
