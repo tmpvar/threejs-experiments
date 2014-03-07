@@ -9,10 +9,14 @@ document.body.appendChild( container );
 
 scene = new THREE.Scene();
 
-camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
+camera = new THREE.PerspectiveCamera(
+  70,
+  window.innerWidth / window.innerHeight,
+  1,
+  10000
+);
 camera.position.set( 0, 0, 100 );
 scene.add(camera);
-
 
 projector = new THREE.Projector();
 renderer = new THREE.WebGLRenderer({
@@ -21,7 +25,7 @@ renderer = new THREE.WebGLRenderer({
   preserveDrawingBuffer: true
 });
 
-var light = new THREE.HemisphereLight( 0xffffff, 0x222233, .6);
+var light = new THREE.HemisphereLight( 0xffffff, 0x222225, .6);
 light.position=camera.position;
 scene.add( light );
 
@@ -67,21 +71,6 @@ var depthUniforms = THREE.UniformsUtils.clone( depthShader.uniforms );
 depthMaterial = new THREE.ShaderMaterial( { fragmentShader: depthShader.fragmentShader, vertexShader: depthShader.vertexShader, uniforms: depthUniforms } );
 depthMaterial.blending = THREE.NoBlending;
 
-// postprocessing
-
-composer = new THREE.EffectComposer( renderer );
-composer.addPass( new THREE.RenderPass( scene, camera ) );
-
-depthTarget = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, format: THREE.RGBAFormat } );
-
-var effect = new THREE.ShaderPass( THREE.SSAOShader );
-effect.uniforms[ 'tDepth' ].value = depthTarget;
-effect.uniforms[ 'size' ].value.set( window.innerWidth, window.innerHeight );
-effect.uniforms[ 'cameraNear' ].value = camera.near;
-effect.uniforms[ 'cameraFar' ].value = camera.far;
-effect.renderToScreen = true;
-composer.addPass( effect );
-
 
 
 var last = 0;
@@ -91,11 +80,10 @@ var tick = function(t) {
 
   renderer2.render(scene2, camera)
 
-  scene.overrideMaterial = depthMaterial;
-  renderer.render( scene, camera, depthTarget );
-  scene.overrideMaterial = null;
-
-  composer.render();
+  //scene.overrideMaterial = depthMaterial;
+  renderer.render( scene, camera );
+  //scene.overrideMaterial = null;
+  //composer.render();
   for (var i = 0; i<updateSteps.length; i++) {
     if (typeof updateSteps[i].update === 'function') {
       updateSteps[i].update(d);

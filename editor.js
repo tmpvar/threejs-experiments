@@ -71,16 +71,9 @@ var baseMaterial = new THREE.MeshPhongMaterial({
   shinyness: 100
 });
 
-var cube = new THREE.Mesh( new THREE.CubeGeometry( 20, 20, 5 ), baseMaterial);
+var cube2 = new THREE.Mesh( new THREE.CubeGeometry( 10, 10, 2 ), baseMaterial);
 
-cube.position.y = 100;
-sceneRoot.add( cube );
-
-tools.computeNgonHelpers(cube);
-
-var cube2 = new THREE.Mesh( new THREE.CubeGeometry( 100, 100, 5 ), baseMaterial);
-
-cube2.position.x = 100;
+cube2.position.x = 0;
 sceneRoot.add( cube2 );
 
 tools.computeNgonHelpers(cube2);
