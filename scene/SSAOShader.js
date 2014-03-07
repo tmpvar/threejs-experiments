@@ -18,7 +18,7 @@ THREE.SSAOShader = {
 
 		"tDiffuse":     { type: "t", value: null },
 		"tDepth":       { type: "t", value: null },
-		"size":         { type: "v2", value: new THREE.Vector2( 512, 512 ) },
+		"size":         { type: "v2", value: new THREE.Vector2( 2048, 2048 ) },
 		"cameraNear":   { type: "f", value: 1 },
 		"cameraFar":    { type: "f", value: 100 },
 		"fogNear":      { type: "f", value: 5 },
@@ -134,7 +134,7 @@ THREE.SSAOShader = {
 			"float zdepth = unpackDepth( texture2D( tDepth, vUv ) );",
 			"float depth = -cameraFar * cameraNear / ( zdepth * cameraFarMinusNear - cameraFar );",
 
-			"return smoothstep( fogNear, fogFar, depth );",
+			"return smoothstep( fogNear, fogFar, 1.0 );",
 
 		"}",
 
