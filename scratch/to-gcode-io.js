@@ -1,4 +1,6 @@
 window.exportToGcodeIO = function(url, geometry) {
+  geometry = geometry || window.sceneRoot.children[0].geometry;
+
   url = url || 'http://gcode.io';
   var w = window.open(url);
 
