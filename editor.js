@@ -71,7 +71,7 @@ var baseMaterial = new THREE.MeshPhongMaterial({
   shinyness: 100
 });
 
-var cube2 = new THREE.Mesh( new THREE.CubeGeometry( 10, 10, 2 ), baseMaterial);
+var cube2 = new THREE.Mesh( new THREE.CubeGeometry( 100, 50, .0001 ), baseMaterial);
 
 cube2.position.x = 0;
 sceneRoot.add( cube2 );
